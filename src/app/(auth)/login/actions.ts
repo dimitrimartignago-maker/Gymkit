@@ -2,9 +2,10 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { roleHomeRoutes, type Role } from "@/config/permissions";
-import { redirect } from "next/navigation";
 
-export async function signIn(formData: FormData) {
+export async function signIn(
+  formData: FormData
+): Promise<{ error: string } | { redirect: string }> {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
   const next = formData.get("next") as string | null;
@@ -15,7 +16,10 @@ export async function signIn(formData: FormData) {
 
   const supabase = await createClient();
 
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
 
   if (error || !data.user) {
     return { error: "Credenziali non valide. Riprova." };
@@ -28,7 +32,8 @@ export async function signIn(formData: FormData) {
     .single();
 
   const role = (profile?.role ?? "client") as Role;
-  const destination = next && next.startsWith("/") ? next : roleHomeRoutes[role];
+  const destination =
+    next && next.startsWith("/") ? next : roleHomeRoutes[role];
 
-  redirect(destination);
+  return { redirect: destination };
 }

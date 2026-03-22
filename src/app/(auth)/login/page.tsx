@@ -2,16 +2,16 @@
 
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { useSearchParams } from "next/navigation";
-import { Suspense, useRef, useState, useTransition } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState, useTransition } from "react";
 import { signIn } from "./actions";
 
 function LoginForm() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get("next") ?? "";
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-  const formRef = useRef<HTMLFormElement>(null);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -21,12 +21,16 @@ function LoginForm() {
 
     startTransition(async () => {
       const result = await signIn(data);
-      if (result?.error) setError(result.error);
+      if ("error" in result) {
+        setError(result.error);
+      } else {
+        router.push(result.redirect);
+      }
     });
   };
 
   return (
-    <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col gap-5">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
       <div className="flex flex-col gap-1">
         <h2 className="text-xl font-semibold text-[var(--color-text)]">Accedi</h2>
         <p className="text-sm text-[var(--color-text-secondary)]">
