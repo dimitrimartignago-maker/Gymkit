@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { LogOut } from "lucide-react";
 import { signOut } from "@/lib/actions/auth";
+import { ThemeToggle } from "@/components/ui";
 
 const adminNavItems = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/trainers", label: "Trainer" },
   { href: "/courses", label: "Corsi" },
   { href: "/settings", label: "Impostazioni" },
+  { href: "/account", label: "Profilo" },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -31,7 +33,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </Link>
           ))}
         </nav>
-        <div className="px-3 pb-4">
+        <div className="px-3 pb-4 flex flex-col gap-1">
+          <div className="flex items-center justify-between px-3 py-1">
+            <span className="text-xs text-[var(--color-text-secondary)]">Tema</span>
+            <ThemeToggle />
+          </div>
           <form action={signOut}>
             <button
               type="submit"

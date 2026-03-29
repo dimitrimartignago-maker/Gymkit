@@ -10,6 +10,7 @@ const ROUTE_ROLE_MAP: Record<string, Role> = {
   "/trainers": "admin",
   "/courses": "admin",
   "/settings": "admin",
+  "/account": "admin",
   "/clients": "trainer",
   "/plans": "trainer",
   "/exercises": "trainer",
