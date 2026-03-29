@@ -1,4 +1,4 @@
-import { Card } from "@/components/ui/Card";
+import { Card, ThemeToggle } from "@/components/ui";
 import { getClientContext } from "@/lib/supabase/get-client-context";
 import { LogOut, Mail, Phone, User } from "lucide-react";
 import { signOut } from "./actions";
@@ -54,6 +54,14 @@ export default async function ProfilePage() {
               {profile.phone ?? "—"}
             </span>
           </div>
+        </div>
+      </Card>
+
+      {/* Preferenze */}
+      <Card className="flex flex-col gap-0 divide-y divide-[var(--color-border)] p-0 overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-3">
+          <span className="text-sm text-[var(--color-text)]">Tema</span>
+          <ThemeToggle />
         </div>
       </Card>
 

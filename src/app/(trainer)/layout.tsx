@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { LogOut } from "lucide-react";
 import { signOut } from "@/lib/actions/auth";
+import { ThemeToggle } from "@/components/ui";
 
 const trainerNavItems = [
   {
@@ -78,7 +79,11 @@ export default function TrainerLayout({ children }: { children: React.ReactNode 
             </Link>
           ))}
         </nav>
-        <div className="px-3 pb-4">
+        <div className="px-3 pb-4 flex flex-col gap-1">
+          <div className="flex items-center justify-between px-3 py-1">
+            <span className="text-xs text-[var(--color-text-secondary)]">Tema</span>
+            <ThemeToggle />
+          </div>
           <form action={signOut}>
             <button
               type="submit"
@@ -101,14 +106,17 @@ export default function TrainerLayout({ children }: { children: React.ReactNode 
           <span className="font-display font-bold text-base text-[var(--color-text)]">
             GymKit <span className="text-xs text-[var(--color-accent)] font-normal">trainer</span>
           </span>
-          <form action={signOut}>
-            <button
-              type="submit"
-              className="flex items-center justify-center w-9 h-9 rounded-md text-[var(--color-text-secondary)] hover:text-[var(--color-error)] hover:bg-[var(--color-error)]/10 transition-colors"
-            >
-              <LogOut size={18} />
-            </button>
-          </form>
+          <div className="flex items-center gap-1">
+            <ThemeToggle />
+            <form action={signOut}>
+              <button
+                type="submit"
+                className="flex items-center justify-center w-9 h-9 rounded-md text-[var(--color-text-secondary)] hover:text-[var(--color-error)] hover:bg-[var(--color-error)]/10 transition-colors"
+              >
+                <LogOut size={18} />
+              </button>
+            </form>
+          </div>
         </header>
 
         <main className="flex-1 pb-[var(--bottom-bar-height)] md:pb-0">
