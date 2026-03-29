@@ -7,6 +7,7 @@ interface GymSettingsData {
   name: string;
   slug: string;
   primary_color: string;
+  accent_color: string;
   booking_cancellation_hours: number;
 }
 
@@ -37,6 +38,7 @@ export async function updateGymSettings(
         name: data.name.trim(),
         slug: data.slug.trim().toLowerCase().replace(/\s+/g, "-"),
         primary_color: data.primary_color,
+        accent_color: data.accent_color,
         booking_cancellation_hours: data.booking_cancellation_hours,
       })
       .eq("id", gymId);
