@@ -60,11 +60,19 @@ export async function registerWithToken(formData: FormData) {
     },
   });
 
-  if (signUpError || !authData.user) {
-    if (signUpError?.message.includes("already registered")) {
+  if (signUpError) {
+    if (
+      signUpError.message.includes("already registered") ||
+      signUpError.message.includes("User already registered")
+    ) {
       return { error: "Esiste già un account con questa email." };
     }
-    return { error: "Errore durante la registrazione. Riprova." };
+    return { error: `Errore durante la registrazione: ${signUpError.message}` };
+  }
+
+  // Supabase restituisce user: null (senza error) se l'email esiste già in auth.users
+  if (!authData.user) {
+    return { error: "Esiste già un account con questa email." };
   }
 
   // 3. Crea il profilo
