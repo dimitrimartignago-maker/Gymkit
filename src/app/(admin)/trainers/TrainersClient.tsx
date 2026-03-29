@@ -183,10 +183,10 @@ export function TrainersClient({ trainers: initial, invitations: initialInvites 
             Nessun trainer ancora. Usa il bottone &quot;Invita Trainer&quot; per aggiungerne uno.
           </p>
         ) : (
-          <div className="rounded-[var(--radius-md)] border border-white/10 overflow-hidden">
+          <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] overflow-hidden">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-white/10 bg-[var(--color-surface-raised)]">
+                <tr className="border-b border-[var(--color-border)] bg-[var(--color-surface-raised)]">
                   <th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wide">
                     Nome
                   </th>
@@ -206,7 +206,7 @@ export function TrainersClient({ trainers: initial, invitations: initialInvites 
                   <tr
                     key={t.id}
                     className={[
-                      "border-b border-white/5 hover:bg-white/3 transition-colors",
+                      "border-b border-[var(--color-border-soft)] hover:bg-[var(--color-overlay)] transition-colors",
                       i === trainers.length - 1 ? "border-b-0" : "",
                       !t.is_active ? "opacity-50" : "",
                     ].join(" ")}
@@ -259,7 +259,7 @@ export function TrainersClient({ trainers: initial, invitations: initialInvites 
             {invitations.map((inv) => (
               <div
                 key={inv.id}
-                className="flex items-center gap-3 px-4 py-3 rounded-[var(--radius-md)] bg-[var(--color-surface-raised)] border border-white/10"
+                className="flex items-center gap-3 px-4 py-3 rounded-[var(--radius-md)] bg-[var(--color-surface-raised)] border border-[var(--color-border)]"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
@@ -292,7 +292,7 @@ export function TrainersClient({ trainers: initial, invitations: initialInvites 
                 <div className="flex items-center gap-1 shrink-0">
                   <button
                     onClick={() => copyLink(getInviteLink(inv.token))}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--radius-sm)] bg-[var(--color-surface)] hover:bg-white/10 text-[var(--color-text-secondary)] hover:text-[var(--color-text)] transition-colors text-xs"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--radius-sm)] bg-[var(--color-surface)] hover:bg-[var(--color-overlay-md)] text-[var(--color-text-secondary)] hover:text-[var(--color-text)] transition-colors text-xs"
                     title="Copia link"
                   >
                     <Link size={13} />
@@ -362,7 +362,7 @@ export function TrainersClient({ trainers: initial, invitations: initialInvites 
             <select
               value={preAssignedTrainer}
               onChange={(e) => setPreAssignedTrainer(e.target.value)}
-              className="h-[var(--input-height)] w-full rounded-[var(--radius-md)] px-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-white/10 focus:border-[var(--color-accent)] outline-none text-sm transition-colors"
+              className="h-[var(--input-height)] w-full rounded-[var(--radius-md)] px-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none text-sm transition-colors"
             >
               <option value="">— Nessuno —</option>
               {activeTrainers.map((t) => (
@@ -397,7 +397,7 @@ export function TrainersClient({ trainers: initial, invitations: initialInvites 
           </div>
 
           <div className="flex gap-2">
-            <div className="flex-1 min-w-0 px-3 py-2.5 rounded-[var(--radius-md)] bg-[var(--color-surface-raised)] border border-white/10 text-xs text-[var(--color-text-secondary)] truncate font-mono">
+            <div className="flex-1 min-w-0 px-3 py-2.5 rounded-[var(--radius-md)] bg-[var(--color-surface-raised)] border border-[var(--color-border)] text-xs text-[var(--color-text-secondary)] truncate font-mono">
               {generatedLink}
             </div>
             <button

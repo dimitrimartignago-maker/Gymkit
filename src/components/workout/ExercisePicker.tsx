@@ -52,7 +52,7 @@ export function ExercisePicker({ open, onClose, exercises, onSelect }: Props) {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Cerca esercizio…"
-            className="h-10 w-full rounded-[var(--radius-md)] pl-9 pr-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-white/10 focus:border-[var(--color-accent)] outline-none text-sm"
+            className="h-10 w-full rounded-[var(--radius-md)] pl-9 pr-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none text-sm"
           />
         </div>
 
@@ -60,7 +60,7 @@ export function ExercisePicker({ open, onClose, exercises, onSelect }: Props) {
         <select
           value={muscleFilter}
           onChange={(e) => setMuscleFilter(e.target.value)}
-          className="h-10 rounded-[var(--radius-md)] px-3 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-white/10 focus:border-[var(--color-accent)] outline-none text-sm"
+          className="h-10 rounded-[var(--radius-md)] px-3 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none text-sm"
         >
           <option value="">Tutti i muscoli</option>
           {MUSCLE_GROUPS.map((m) => (
@@ -93,7 +93,7 @@ export function ExercisePicker({ open, onClose, exercises, onSelect }: Props) {
                     </span>
                   )}
                   {ex.equipment && ex.equipment !== "nessuno" && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-[var(--color-text-secondary)]">
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--color-overlay-md)] text-[var(--color-text-secondary)]">
                       {equipLabel[ex.equipment] ?? ex.equipment}
                     </span>
                   )}

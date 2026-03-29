@@ -24,7 +24,7 @@ const variantConfig: Record<BadgeVariant, { label: string; classes: string }> = 
   },
   archived: {
     label: "Archiviato",
-    classes: "bg-white/10 text-[var(--color-text-secondary)]",
+    classes: "bg-[var(--color-overlay-md)] text-[var(--color-text-secondary)]",
   },
   confirmed: {
     label: "Confermato",

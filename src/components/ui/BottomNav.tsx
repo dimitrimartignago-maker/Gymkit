@@ -35,7 +35,7 @@ export function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around bg-[var(--color-surface)] border-t border-white/10"
+      className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around bg-[var(--color-surface)] border-t border-[var(--color-border)]"
       style={{ height: "var(--bottom-bar-height)" }}
     >
       {navItems.map(({ href, label, icon: Icon }) => {

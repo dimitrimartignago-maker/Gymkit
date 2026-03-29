@@ -152,7 +152,7 @@ export function LogClient({ planId, day, exercises }: Props) {
     return (
       <div className="min-h-[calc(100vh-var(--bottom-bar-height))] flex flex-col">
         {/* Header */}
-        <div className="sticky top-0 z-10 flex items-center gap-3 px-4 py-4 bg-[var(--color-surface)] border-b border-white/10">
+        <div className="sticky top-0 z-10 flex items-center gap-3 px-4 py-4 bg-[var(--color-surface)] border-b border-[var(--color-border)]">
           <button
             onClick={() => setPhase("logging")}
             className="text-[var(--color-text-secondary)] hover:text-[var(--color-text)] transition-colors"
@@ -215,7 +215,7 @@ export function LogClient({ planId, day, exercises }: Props) {
               onChange={(e) => setOverallNotes(e.target.value)}
               placeholder="Come ti sei sentito? Qualcosa da ricordare…"
               rows={4}
-              className="w-full rounded-[var(--radius-md)] px-4 py-3 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-white/10 focus:border-[var(--color-accent)] outline-none text-sm placeholder:text-[var(--color-text-secondary)] resize-none transition-colors"
+              className="w-full rounded-[var(--radius-md)] px-4 py-3 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none text-sm placeholder:text-[var(--color-text-secondary)] resize-none transition-colors"
             />
           </div>
 
@@ -247,7 +247,7 @@ export function LogClient({ planId, day, exercises }: Props) {
   return (
     <div className="min-h-[calc(100vh-var(--bottom-bar-height))] flex flex-col">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-[var(--color-surface)] border-b border-white/10">
+      <div className="sticky top-0 z-10 bg-[var(--color-surface)] border-b border-[var(--color-border)]">
         <div className="flex items-center gap-3 px-4 py-4">
           <Link
             href="/workout"
@@ -268,7 +268,7 @@ export function LogClient({ planId, day, exercises }: Props) {
           </button>
         </div>
         {/* Progress bar */}
-        <div className="h-1 bg-white/10">
+        <div className="h-1 bg-[var(--color-overlay-md)]">
           <div
             className="h-full bg-[var(--color-accent)] transition-all duration-300"
             style={{ width: `${progressPct}%` }}
@@ -355,7 +355,7 @@ export function LogClient({ planId, day, exercises }: Props) {
                     ? "bg-[var(--color-accent)]"
                     : i < currentSetIdx
                     ? "bg-[var(--color-accent)]/40"
-                    : "bg-white/15",
+                    : "bg-[var(--color-overlay-lg)]",
                 ].join(" ")}
               />
             ))}
@@ -432,7 +432,7 @@ export function LogClient({ planId, day, exercises }: Props) {
               value={currentSet.notes}
               onChange={(e) => patchCurrentSet({ notes: e.target.value })}
               placeholder="Es. tecnica migliorata, forma migliore…"
-              className="h-[var(--input-height)] w-full rounded-[var(--radius-md)] px-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-white/10 focus:border-[var(--color-accent)] outline-none text-sm placeholder:text-[var(--color-text-secondary)] transition-colors"
+              className="h-[var(--input-height)] w-full rounded-[var(--radius-md)] px-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none text-sm placeholder:text-[var(--color-text-secondary)] transition-colors"
             />
           </div>
         </div>

@@ -17,9 +17,9 @@ const variantClasses: Record<Variant, string> = {
   primary:
     "bg-[var(--color-accent)] text-white hover:opacity-90 active:opacity-80 disabled:opacity-40",
   secondary:
-    "bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-white/10 hover:bg-white/10 active:bg-white/5 disabled:opacity-40",
+    "bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-[var(--color-border)] hover:bg-[var(--color-overlay-md)] active:bg-[var(--color-overlay)] disabled:opacity-40",
   ghost:
-    "bg-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-white/5 active:bg-white/10 disabled:opacity-40",
+    "bg-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-overlay)] active:bg-[var(--color-overlay-md)] disabled:opacity-40",
   danger:
     "bg-[var(--color-error)] text-white hover:opacity-90 active:opacity-80 disabled:opacity-40",
 };

@@ -246,7 +246,7 @@ export function ScheduleClient({
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="sticky top-0 z-10 border-b border-white/10 bg-[var(--color-surface)]">
+      <div className="sticky top-0 z-10 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
         <div className="flex items-center gap-3 px-4 md:px-6 py-4 flex-wrap">
           <h1 className="text-lg font-semibold text-[var(--color-text)] mr-auto">
             Calendario
@@ -316,7 +316,7 @@ export function ScheduleClient({
               <div key={date.toISOString()} className="w-44 flex flex-col gap-2">
                 {/* Day header */}
                 <div
-                  className="flex items-center justify-between pb-1 border-b border-white/10 cursor-pointer group"
+                  className="flex items-center justify-between pb-1 border-b border-[var(--color-border)] cursor-pointer group"
                   onClick={() => openSlotForDate(date)}
                 >
                   <div className="flex flex-col">
@@ -344,7 +344,7 @@ export function ScheduleClient({
                   {daySlots.length === 0 && (
                     <button
                       onClick={() => openSlotForDate(date)}
-                      className="h-10 rounded-[var(--radius-sm)] border border-dashed border-white/10 flex items-center justify-center text-[var(--color-text-secondary)] hover:border-[var(--color-accent)]/40 hover:text-[var(--color-accent)] transition-colors"
+                      className="h-10 rounded-[var(--radius-sm)] border border-dashed border-[var(--color-border)] flex items-center justify-center text-[var(--color-text-secondary)] hover:border-[var(--color-accent)]/40 hover:text-[var(--color-accent)] transition-colors"
                     >
                       <span className="text-xs">+ slot</span>
                     </button>
@@ -398,7 +398,7 @@ export function ScheduleClient({
 
       {/* Recurring schedules legend */}
       {schedules.length > 0 && (
-        <div className="px-4 py-3 border-t border-white/10">
+        <div className="px-4 py-3 border-t border-[var(--color-border)]">
           <p className="text-xs text-[var(--color-text-secondary)] mb-2 font-medium uppercase tracking-wide">
             Ricorrenze attive
           </p>
@@ -425,7 +425,7 @@ export function ScheduleClient({
 
       {/* Toast */}
       {toastMsg && (
-        <div className="fixed bottom-[calc(var(--bottom-bar-height)+16px)] left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-[var(--color-surface-raised)] border border-white/15 text-sm text-[var(--color-text)] shadow-lg whitespace-nowrap">
+        <div className="fixed bottom-[calc(var(--bottom-bar-height)+16px)] left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-[var(--color-surface-raised)] border border-[var(--color-border)] text-sm text-[var(--color-text)] shadow-lg whitespace-nowrap">
           {toastMsg}
         </div>
       )}
@@ -444,7 +444,7 @@ export function ScheduleClient({
             <select
               value={slotForm.course_id}
               onChange={(e) => patchSlot({ course_id: e.target.value })}
-              className="h-[var(--input-height)] w-full rounded-[var(--radius-md)] px-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-white/10 focus:border-[var(--color-accent)] outline-none text-sm transition-colors"
+              className="h-[var(--input-height)] w-full rounded-[var(--radius-md)] px-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none text-sm transition-colors"
             >
               <option value="">— Seleziona corso —</option>
               {courses.map((c) => (
@@ -463,7 +463,7 @@ export function ScheduleClient({
               type="date"
               value={slotForm.date}
               onChange={(e) => patchSlot({ date: e.target.value })}
-              className="h-[var(--input-height)] w-full rounded-[var(--radius-md)] px-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-white/10 focus:border-[var(--color-accent)] outline-none text-sm transition-colors"
+              className="h-[var(--input-height)] w-full rounded-[var(--radius-md)] px-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none text-sm transition-colors"
             />
           </div>
 
@@ -476,7 +476,7 @@ export function ScheduleClient({
                 type="time"
                 value={slotForm.start_time}
                 onChange={(e) => patchSlot({ start_time: e.target.value })}
-                className="h-[var(--input-height)] w-full rounded-[var(--radius-md)] px-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-white/10 focus:border-[var(--color-accent)] outline-none text-sm transition-colors"
+                className="h-[var(--input-height)] w-full rounded-[var(--radius-md)] px-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none text-sm transition-colors"
               />
             </div>
             <div className="flex flex-col gap-1.5">
@@ -487,7 +487,7 @@ export function ScheduleClient({
                 type="time"
                 value={slotForm.end_time}
                 onChange={(e) => patchSlot({ end_time: e.target.value })}
-                className="h-[var(--input-height)] w-full rounded-[var(--radius-md)] px-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-white/10 focus:border-[var(--color-accent)] outline-none text-sm transition-colors"
+                className="h-[var(--input-height)] w-full rounded-[var(--radius-md)] px-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none text-sm transition-colors"
               />
             </div>
           </div>
@@ -499,7 +499,7 @@ export function ScheduleClient({
             <select
               value={slotForm.trainer_id}
               onChange={(e) => patchSlot({ trainer_id: e.target.value })}
-              className="h-[var(--input-height)] w-full rounded-[var(--radius-md)] px-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-white/10 focus:border-[var(--color-accent)] outline-none text-sm transition-colors"
+              className="h-[var(--input-height)] w-full rounded-[var(--radius-md)] px-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none text-sm transition-colors"
             >
               <option value="">— Nessuno —</option>
               {trainers.map((t) => (
@@ -531,7 +531,7 @@ export function ScheduleClient({
             <select
               value={schedForm.course_id}
               onChange={(e) => patchSched({ course_id: e.target.value })}
-              className="h-[var(--input-height)] w-full rounded-[var(--radius-md)] px-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-white/10 focus:border-[var(--color-accent)] outline-none text-sm transition-colors"
+              className="h-[var(--input-height)] w-full rounded-[var(--radius-md)] px-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none text-sm transition-colors"
             >
               <option value="">— Seleziona corso —</option>
               {courses.map((c) => (
@@ -578,7 +578,7 @@ export function ScheduleClient({
                 type="time"
                 value={schedForm.start_time}
                 onChange={(e) => patchSched({ start_time: e.target.value })}
-                className="h-[var(--input-height)] w-full rounded-[var(--radius-md)] px-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-white/10 focus:border-[var(--color-accent)] outline-none text-sm transition-colors"
+                className="h-[var(--input-height)] w-full rounded-[var(--radius-md)] px-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none text-sm transition-colors"
               />
             </div>
             <div className="flex flex-col gap-1.5">
@@ -589,7 +589,7 @@ export function ScheduleClient({
                 type="time"
                 value={schedForm.end_time}
                 onChange={(e) => patchSched({ end_time: e.target.value })}
-                className="h-[var(--input-height)] w-full rounded-[var(--radius-md)] px-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-white/10 focus:border-[var(--color-accent)] outline-none text-sm transition-colors"
+                className="h-[var(--input-height)] w-full rounded-[var(--radius-md)] px-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none text-sm transition-colors"
               />
             </div>
           </div>
@@ -601,7 +601,7 @@ export function ScheduleClient({
             <select
               value={schedForm.trainer_id}
               onChange={(e) => patchSched({ trainer_id: e.target.value })}
-              className="h-[var(--input-height)] w-full rounded-[var(--radius-md)] px-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-white/10 focus:border-[var(--color-accent)] outline-none text-sm transition-colors"
+              className="h-[var(--input-height)] w-full rounded-[var(--radius-md)] px-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none text-sm transition-colors"
             >
               <option value="">— Nessuno —</option>
               {trainers.map((t) => (
@@ -682,7 +682,7 @@ export function ScheduleClient({
 
             {/* Cancel slot */}
             {!modal.slot.is_cancelled && (
-              <div className="flex flex-col gap-3 pt-2 border-t border-white/10">
+              <div className="flex flex-col gap-3 pt-2 border-t border-[var(--color-border)]">
                 <p className="text-sm font-medium text-[var(--color-text)]">
                   Cancella slot
                 </p>
@@ -691,7 +691,7 @@ export function ScheduleClient({
                   value={cancelReason}
                   onChange={(e) => setCancelReason(e.target.value)}
                   placeholder="Motivazione (opzionale)"
-                  className="h-[var(--input-height)] w-full rounded-[var(--radius-md)] px-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-white/10 focus:border-[var(--color-accent)] outline-none text-sm placeholder:text-[var(--color-text-secondary)] transition-colors"
+                  className="h-[var(--input-height)] w-full rounded-[var(--radius-md)] px-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none text-sm placeholder:text-[var(--color-text-secondary)] transition-colors"
                 />
                 {error && (
                   <p className="text-sm text-[var(--color-error)]">{error}</p>

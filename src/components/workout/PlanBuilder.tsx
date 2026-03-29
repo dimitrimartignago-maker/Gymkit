@@ -73,7 +73,7 @@ function StepIndicator({ current }: { current: number }) {
                 ? "bg-[var(--color-success)] text-black"
                 : i === current
                 ? "bg-[var(--color-accent)] text-white"
-                : "bg-white/10 text-[var(--color-text-secondary)]",
+                : "bg-[var(--color-overlay-md)] text-[var(--color-text-secondary)]",
             ].join(" ")}
           >
             {i < current ? "✓" : i + 1}
@@ -241,7 +241,7 @@ export function PlanBuilder({
         <select
           value={plan.clientId}
           onChange={(e) => setPlan((p) => ({ ...p, clientId: e.target.value }))}
-          className="h-[var(--input-height)] rounded-[var(--radius-md)] px-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-white/10 focus:border-[var(--color-accent)] outline-none"
+          className="h-[var(--input-height)] rounded-[var(--radius-md)] px-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none"
         >
           <option value="">Seleziona cliente…</option>
           {clients.map((c) => (
@@ -266,7 +266,7 @@ export function PlanBuilder({
           onChange={(e) => setPlan((p) => ({ ...p, description: e.target.value }))}
           placeholder="Note generali sulla scheda…"
           rows={2}
-          className="w-full rounded-[var(--radius-md)] px-4 py-3 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-white/10 focus:border-[var(--color-accent)] outline-none resize-none text-sm placeholder:text-[var(--color-text-secondary)]"
+          className="w-full rounded-[var(--radius-md)] px-4 py-3 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none resize-none text-sm placeholder:text-[var(--color-text-secondary)]"
         />
       </div>
 
@@ -305,7 +305,7 @@ export function PlanBuilder({
           <input
             value={day.name}
             onChange={(e) => updateDay(i, { name: e.target.value })}
-            className="flex-1 bg-transparent text-sm text-[var(--color-text)] outline-none border-b border-white/20 focus:border-[var(--color-accent)] pb-0.5"
+            className="flex-1 bg-transparent text-sm text-[var(--color-text)] outline-none border-b border-[var(--color-border-strong)] focus:border-[var(--color-accent)] pb-0.5"
             placeholder="Nome giornata"
           />
           <div className="flex gap-1 shrink-0">
@@ -438,7 +438,7 @@ export function PlanBuilder({
                     updateExercise(activeDayIdx, ex.tempId, { reps: e.target.value })
                   }
                   placeholder="es. 8-12 / AMRAP"
-                  className="h-[var(--input-height)] rounded-[var(--radius-md)] px-3 bg-[var(--color-surface)] text-[var(--color-text)] border border-white/10 focus:border-[var(--color-accent)] outline-none text-sm font-mono"
+                  className="h-[var(--input-height)] rounded-[var(--radius-md)] px-3 bg-[var(--color-surface)] text-[var(--color-text)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none text-sm font-mono"
                 />
               </div>
             </div>
@@ -466,7 +466,7 @@ export function PlanBuilder({
                     })
                   }
                   placeholder="es. RPE 8 / 70%1RM"
-                  className="h-[var(--input-height)] rounded-[var(--radius-md)] px-3 bg-[var(--color-surface)] text-[var(--color-text)] border border-white/10 focus:border-[var(--color-accent)] outline-none text-sm font-mono"
+                  className="h-[var(--input-height)] rounded-[var(--radius-md)] px-3 bg-[var(--color-surface)] text-[var(--color-text)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none text-sm font-mono"
                 />
               </div>
             </div>
@@ -482,7 +482,7 @@ export function PlanBuilder({
                   updateExercise(activeDayIdx, ex.tempId, { notes: e.target.value })
                 }
                 placeholder="es. Arco scapolare, fermo al petto 1s"
-                className="h-10 rounded-[var(--radius-md)] px-3 bg-[var(--color-surface)] text-[var(--color-text)] border border-white/10 focus:border-[var(--color-accent)] outline-none text-sm"
+                className="h-10 rounded-[var(--radius-md)] px-3 bg-[var(--color-surface)] text-[var(--color-text)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none text-sm"
               />
             </div>
 
@@ -499,7 +499,7 @@ export function PlanBuilder({
                   })
                 }
                 placeholder="es. A  (stesso valore = superset)"
-                className="h-10 rounded-[var(--radius-md)] px-3 bg-[var(--color-surface)] text-[var(--color-text)] border border-white/10 focus:border-[var(--color-accent)] outline-none text-sm font-mono"
+                className="h-10 rounded-[var(--radius-md)] px-3 bg-[var(--color-surface)] text-[var(--color-text)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none text-sm font-mono"
               />
             </div>
           </div>

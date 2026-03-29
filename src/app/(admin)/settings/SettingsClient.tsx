@@ -71,7 +71,7 @@ export function SettingsClient({ gym }: Props) {
 
       {/* Identità */}
       <section className="flex flex-col gap-5">
-        <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide border-b border-white/10 pb-2">
+        <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide border-b border-[var(--color-border)] pb-2">
           Identità
         </h2>
 
@@ -93,7 +93,7 @@ export function SettingsClient({ gym }: Props) {
 
       {/* Colore accent */}
       <section className="flex flex-col gap-4">
-        <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide border-b border-white/10 pb-2">
+        <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide border-b border-[var(--color-border)] pb-2">
           Colore principale
         </h2>
 
@@ -120,7 +120,7 @@ export function SettingsClient({ gym }: Props) {
               type="color"
               value={customColor}
               onChange={(e) => { setCustomColor(e.target.value); setPrimaryColor(e.target.value); }}
-              className="w-10 h-10 rounded-[var(--radius-sm)] border border-white/10 bg-transparent cursor-pointer p-0.5"
+              className="w-10 h-10 rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-transparent cursor-pointer p-0.5"
             />
             <span className="text-sm text-[var(--color-text-secondary)] font-mono">
               {primaryColor.toUpperCase()}
@@ -135,7 +135,7 @@ export function SettingsClient({ gym }: Props) {
 
       {/* Booking */}
       <section className="flex flex-col gap-5">
-        <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide border-b border-white/10 pb-2">
+        <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide border-b border-[var(--color-border)] pb-2">
           Prenotazioni
         </h2>
 

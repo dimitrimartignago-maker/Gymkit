@@ -38,7 +38,7 @@ export default async function NewPlanPage({ searchParams }: Props) {
 
   return (
     <>
-      <div className="sticky top-0 z-10 bg-[var(--color-surface)] border-b border-white/10 px-4 md:px-6 py-4">
+      <div className="sticky top-0 z-10 bg-[var(--color-surface)] border-b border-[var(--color-border)] px-4 md:px-6 py-4">
         <h1 className="font-semibold text-[var(--color-text)]">Nuova Scheda</h1>
       </div>
       <PlanBuilder

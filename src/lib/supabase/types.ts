@@ -27,6 +27,7 @@ export interface Database {
           logo_url: string | null;
           primary_color: string;
           secondary_color: string;
+          accent_color: string | null;
           timezone: string;
           booking_cancellation_hours: number;
           created_at: string;
@@ -38,6 +39,7 @@ export interface Database {
           logo_url?: string | null;
           primary_color?: string;
           secondary_color?: string;
+          accent_color?: string | null;
           timezone?: string;
           booking_cancellation_hours?: number;
           created_at?: string;
@@ -49,6 +51,7 @@ export interface Database {
           logo_url?: string | null;
           primary_color?: string;
           secondary_color?: string;
+          accent_color?: string | null;
           timezone?: string;
           booking_cancellation_hours?: number;
           created_at?: string;

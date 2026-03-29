@@ -185,7 +185,7 @@ export function BookingClient({ slot, myBooking: initialBooking, cancellationHou
                       "w-2 h-3 rounded-sm",
                       i < confirmedCount
                         ? "bg-[var(--color-accent)]"
-                        : "bg-white/15",
+                        : "bg-[var(--color-overlay-lg)]",
                     ].join(" ")}
                   />
                 ))}
@@ -210,7 +210,7 @@ export function BookingClient({ slot, myBooking: initialBooking, cancellationHou
               "flex items-start gap-3 p-4 rounded-[var(--radius-md)] border",
               booking.status === "confirmed"
                 ? "bg-[var(--color-accent)]/10 border-[var(--color-accent)]/20"
-                : "bg-[var(--color-surface-raised)] border-white/10",
+                : "bg-[var(--color-surface-raised)] border-[var(--color-border)]",
             ].join(" ")}
           >
             <CheckCircle2

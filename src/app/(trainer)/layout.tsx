@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { LogOut } from "lucide-react";
+import { signOut } from "@/lib/actions/auth";
 
 const trainerNavItems = [
   {
@@ -57,9 +59,9 @@ export default function TrainerLayout({ children }: { children: React.ReactNode 
   return (
     <div className="min-h-screen flex bg-[var(--color-bg)]">
       {/* Sidebar — desktop */}
-      <aside className="hidden md:flex flex-col w-60 bg-[var(--color-surface)] border-r border-white/10 shrink-0">
+      <aside className="hidden md:flex flex-col w-60 bg-[var(--color-surface)] border-r border-[var(--color-border)] shrink-0">
         <div
-          className="flex items-center px-6 font-display font-bold text-lg text-[var(--color-text)] border-b border-white/10"
+          className="flex items-center px-6 font-display font-bold text-lg text-[var(--color-text)] border-b border-[var(--color-border)]"
           style={{ height: "var(--nav-height)" }}
         >
           GymKit <span className="ml-2 text-xs text-[var(--color-accent)] font-normal">trainer</span>
@@ -77,12 +79,15 @@ export default function TrainerLayout({ children }: { children: React.ReactNode 
           ))}
         </nav>
         <div className="px-3 pb-4">
-          <Link
-            href="/login"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-md text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-raised)] transition-colors text-sm"
-          >
-            Impostazioni
-          </Link>
+          <form action={signOut}>
+            <button
+              type="submit"
+              className="flex items-center gap-3 w-full px-3 py-2.5 rounded-md text-[var(--color-text-secondary)] hover:text-[var(--color-error)] hover:bg-[var(--color-error)]/10 transition-colors text-sm"
+            >
+              <LogOut size={16} />
+              Esci
+            </button>
+          </form>
         </div>
       </aside>
 
@@ -90,12 +95,20 @@ export default function TrainerLayout({ children }: { children: React.ReactNode 
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar — mobile */}
         <header
-          className="md:hidden flex items-center justify-between px-4 bg-[var(--color-surface)] border-b border-white/10"
+          className="md:hidden flex items-center justify-between px-4 bg-[var(--color-surface)] border-b border-[var(--color-border)]"
           style={{ height: "var(--nav-height)" }}
         >
           <span className="font-display font-bold text-base text-[var(--color-text)]">
             GymKit <span className="text-xs text-[var(--color-accent)] font-normal">trainer</span>
           </span>
+          <form action={signOut}>
+            <button
+              type="submit"
+              className="flex items-center justify-center w-9 h-9 rounded-md text-[var(--color-text-secondary)] hover:text-[var(--color-error)] hover:bg-[var(--color-error)]/10 transition-colors"
+            >
+              <LogOut size={18} />
+            </button>
+          </form>
         </header>
 
         <main className="flex-1 pb-[var(--bottom-bar-height)] md:pb-0">
@@ -105,7 +118,7 @@ export default function TrainerLayout({ children }: { children: React.ReactNode 
 
       {/* Bottom nav — mobile */}
       <nav
-        className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around bg-[var(--color-surface)] border-t border-white/10"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around bg-[var(--color-surface)] border-t border-[var(--color-border)]"
         style={{ height: "var(--bottom-bar-height)" }}
       >
         {trainerNavItems.map((item) => (

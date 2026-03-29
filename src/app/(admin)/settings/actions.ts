@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
 
 interface GymSettingsData {
   name: string;
@@ -40,7 +41,11 @@ export async function updateGymSettings(
       })
       .eq("id", gymId);
 
-    if (error) return { success: false, error: "Errore nel salvataggio." };
+    if (error) {
+      console.error("[updateGymSettings] Supabase error:", error);
+      return { success: false, error: error.message ?? "Errore nel salvataggio." };
+    }
+    revalidatePath("/settings");
     return { success: true };
   } catch {
     return { success: false, error: "Errore imprevisto." };

@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { LogOut } from "lucide-react";
+import { signOut } from "@/lib/actions/auth";
 
 const adminNavItems = [
   { href: "/dashboard", label: "Dashboard" },
@@ -11,9 +13,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div className="min-h-screen flex bg-[var(--color-bg)]">
       {/* Sidebar */}
-      <aside className="flex flex-col w-60 bg-[var(--color-surface)] border-r border-white/10 shrink-0">
+      <aside className="flex flex-col w-60 bg-[var(--color-surface)] border-r border-[var(--color-border)] shrink-0">
         <div
-          className="flex items-center px-6 font-display font-bold text-lg text-[var(--color-text)] border-b border-white/10"
+          className="flex items-center px-6 font-display font-bold text-lg text-[var(--color-text)] border-b border-[var(--color-border)]"
           style={{ height: "var(--nav-height)" }}
         >
           GymKit <span className="ml-2 text-xs text-[var(--color-accent)] font-normal">admin</span>
@@ -29,6 +31,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </Link>
           ))}
         </nav>
+        <div className="px-3 pb-4">
+          <form action={signOut}>
+            <button
+              type="submit"
+              className="flex items-center gap-3 w-full px-3 py-2.5 rounded-md text-[var(--color-text-secondary)] hover:text-[var(--color-error)] hover:bg-[var(--color-error)]/10 transition-colors text-sm"
+            >
+              <LogOut size={16} />
+              Esci
+            </button>
+          </form>
+        </div>
       </aside>
 
       <main className="flex-1 min-w-0">{children}</main>

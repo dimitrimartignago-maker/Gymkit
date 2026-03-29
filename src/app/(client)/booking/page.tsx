@@ -122,7 +122,7 @@ export default async function BookingPage({ searchParams }: Props) {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-[var(--color-surface)] border-b border-white/10 px-4 py-4 flex items-center justify-between gap-3">
+      <div className="sticky top-0 z-10 bg-[var(--color-surface)] border-b border-[var(--color-border)] px-4 py-4 flex items-center justify-between gap-3">
         <h1 className="text-lg font-semibold text-[var(--color-text)]">
           Booking
         </h1>
@@ -174,7 +174,7 @@ export default async function BookingPage({ searchParams }: Props) {
                 {/* Slots */}
                 <div className="flex flex-col gap-2">
                   {daySlots.length === 0 && (
-                    <div className="h-12 rounded-[var(--radius-sm)] border border-dashed border-white/10" />
+                    <div className="h-12 rounded-[var(--radius-sm)] border border-dashed border-[var(--color-border)]" />
                   )}
                   {daySlots.map((slot) => {
                     const capacity =

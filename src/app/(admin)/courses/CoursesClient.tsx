@@ -144,10 +144,10 @@ export function CoursesClient({ courses: initial, trainers }: Props) {
       </div>
 
       {/* Table */}
-      <div className="rounded-[var(--radius-md)] border border-white/10 overflow-hidden">
+      <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-white/10 bg-[var(--color-surface-raised)]">
+            <tr className="border-b border-[var(--color-border)] bg-[var(--color-surface-raised)]">
               <th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wide">
                 Corso
               </th>
@@ -171,7 +171,7 @@ export function CoursesClient({ courses: initial, trainers }: Props) {
               <tr
                 key={course.id}
                 className={[
-                  "border-b border-white/5 hover:bg-white/3 transition-colors",
+                  "border-b border-[var(--color-border-soft)] hover:bg-[var(--color-overlay)] transition-colors",
                   i === courses.length - 1 ? "border-b-0" : "",
                   !course.is_active ? "opacity-50" : "",
                 ].join(" ")}
@@ -252,7 +252,7 @@ export function CoursesClient({ courses: initial, trainers }: Props) {
               onChange={(e) => patch({ description: e.target.value })}
               placeholder="Descrizione breve del corso…"
               rows={2}
-              className="w-full rounded-[var(--radius-md)] px-4 py-3 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-white/10 focus:border-[var(--color-accent)] outline-none text-sm placeholder:text-[var(--color-text-secondary)] resize-none transition-colors"
+              className="w-full rounded-[var(--radius-md)] px-4 py-3 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none text-sm placeholder:text-[var(--color-text-secondary)] resize-none transition-colors"
             />
           </div>
 
@@ -304,7 +304,7 @@ export function CoursesClient({ courses: initial, trainers }: Props) {
             <select
               value={form.trainer_id}
               onChange={(e) => patch({ trainer_id: e.target.value })}
-              className="h-[var(--input-height)] w-full rounded-[var(--radius-md)] px-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-white/10 focus:border-[var(--color-accent)] outline-none text-sm transition-colors"
+              className="h-[var(--input-height)] w-full rounded-[var(--radius-md)] px-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none text-sm transition-colors"
             >
               <option value="">— Nessuno —</option>
               {trainers.map((t) => (

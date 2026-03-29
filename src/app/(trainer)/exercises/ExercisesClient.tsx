@@ -144,13 +144,13 @@ export function ExercisesClient({ exercises: initial, trainerId }: Props) {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Cerca esercizio…"
-            className="h-[var(--input-height)] w-full rounded-[var(--radius-md)] pl-9 pr-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-white/10 focus:border-[var(--color-accent)] outline-none text-sm"
+            className="h-[var(--input-height)] w-full rounded-[var(--radius-md)] pl-9 pr-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none text-sm"
           />
         </div>
         <select
           value={muscleFilter}
           onChange={(e) => setMuscleFilter(e.target.value)}
-          className="h-[var(--input-height)] rounded-[var(--radius-md)] px-3 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-white/10 focus:border-[var(--color-accent)] outline-none text-sm"
+          className="h-[var(--input-height)] rounded-[var(--radius-md)] px-3 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none text-sm"
         >
           <option value="">Tutti i muscoli</option>
           {MUSCLE_GROUPS.map((m) => (
@@ -160,7 +160,7 @@ export function ExercisesClient({ exercises: initial, trainerId }: Props) {
         <select
           value={equipFilter}
           onChange={(e) => setEquipFilter(e.target.value)}
-          className="h-[var(--input-height)] rounded-[var(--radius-md)] px-3 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-white/10 focus:border-[var(--color-accent)] outline-none text-sm"
+          className="h-[var(--input-height)] rounded-[var(--radius-md)] px-3 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none text-sm"
         >
           <option value="">Tutti i mezzi</option>
           {EQUIPMENT_OPTIONS.map((eq) => (
@@ -196,12 +196,12 @@ export function ExercisesClient({ exercises: initial, trainerId }: Props) {
                         </span>
                       )}
                       {ex.equipment && ex.equipment !== "nessuno" && (
-                        <span className="inline-flex px-2 py-0.5 rounded-[var(--radius-sm)] text-xs bg-white/10 text-[var(--color-text-secondary)]">
+                        <span className="inline-flex px-2 py-0.5 rounded-[var(--radius-sm)] text-xs bg-[var(--color-overlay-md)] text-[var(--color-text-secondary)]">
                           {equipLabel[ex.equipment] ?? ex.equipment}
                         </span>
                       )}
                       {ex.is_default && (
-                        <span className="inline-flex px-2 py-0.5 rounded-[var(--radius-sm)] text-xs bg-white/5 text-[var(--color-text-secondary)]">
+                        <span className="inline-flex px-2 py-0.5 rounded-[var(--radius-sm)] text-xs bg-[var(--color-overlay)] text-[var(--color-text-secondary)]">
                           default
                         </span>
                       )}
@@ -282,7 +282,7 @@ export function ExercisesClient({ exercises: initial, trainerId }: Props) {
               onChange={(e) => setForm((p) => ({ ...p, muscle_group: e.target.value }))}
               required
               disabled={isPending}
-              className="h-[var(--input-height)] rounded-[var(--radius-md)] px-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-white/10 focus:border-[var(--color-accent)] outline-none"
+              className="h-[var(--input-height)] rounded-[var(--radius-md)] px-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none"
             >
               <option value="">Seleziona…</option>
               {MUSCLE_GROUPS.map((m) => (
@@ -297,7 +297,7 @@ export function ExercisesClient({ exercises: initial, trainerId }: Props) {
               value={form.equipment}
               onChange={(e) => setForm((p) => ({ ...p, equipment: e.target.value }))}
               disabled={isPending}
-              className="h-[var(--input-height)] rounded-[var(--radius-md)] px-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-white/10 focus:border-[var(--color-accent)] outline-none"
+              className="h-[var(--input-height)] rounded-[var(--radius-md)] px-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none"
             >
               <option value="">Nessuno</option>
               {EQUIPMENT_OPTIONS.map((eq) => (
@@ -314,7 +314,7 @@ export function ExercisesClient({ exercises: initial, trainerId }: Props) {
               placeholder="Istruzioni di esecuzione…"
               rows={3}
               disabled={isPending}
-              className="w-full rounded-[var(--radius-md)] px-4 py-3 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-white/10 focus:border-[var(--color-accent)] outline-none resize-none text-sm placeholder:text-[var(--color-text-secondary)]"
+              className="w-full rounded-[var(--radius-md)] px-4 py-3 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none resize-none text-sm placeholder:text-[var(--color-text-secondary)]"
             />
           </div>
 

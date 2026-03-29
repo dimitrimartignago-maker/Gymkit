@@ -64,7 +64,7 @@ export function Modal({ open, onClose, title, children, persistent = false }: Mo
             {!persistent && (
               <button
                 onClick={onClose}
-                className="ml-auto flex items-center justify-center w-8 h-8 rounded-full text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-white/10 transition-colors"
+                className="ml-auto flex items-center justify-center w-8 h-8 rounded-full text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-overlay-md)] transition-colors"
                 aria-label="Chiudi"
               >
                 <X size={18} />

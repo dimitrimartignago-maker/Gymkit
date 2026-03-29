@@ -6,15 +6,27 @@
 @tailwind utilities;
 
 :root {
-  /* Colori — sovrascritti dal config per palestra */
+  /* Colori brand — sovrascritti dal DB per palestra */
   --color-primary: var(--gym-primary, #1A1A2E);
   --color-primary-light: var(--gym-primary-light, #16213E);
   --color-accent: var(--gym-accent, #E94560);
+
+  /* Tema dark (default) */
   --color-bg: #0F0F0F;
   --color-surface: #1A1A1A;
   --color-surface-raised: #252525;
   --color-text: #F5F5F5;
   --color-text-secondary: #A0A0A0;
+
+  /* Bordi e overlay — variabili per tema */
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-border-soft: rgba(255, 255, 255, 0.05);
+  --color-border-strong: rgba(255, 255, 255, 0.2);
+  --color-overlay: rgba(255, 255, 255, 0.05);
+  --color-overlay-md: rgba(255, 255, 255, 0.1);
+  --color-overlay-lg: rgba(255, 255, 255, 0.15);
+
+  /* Stato */
   --color-success: #4ADE80;
   --color-warning: #FBBF24;
   --color-error: #F87171;
@@ -42,9 +54,9 @@
   --radius-full: 9999px;
 
   /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
-  --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
 
   /* Sizing */
   --button-height-sm: 36px;
@@ -53,6 +65,28 @@
   --input-height: 48px;
   --nav-height: 64px;
   --bottom-bar-height: 72px;
+}
+
+/* Tema light — aggiunge classe "light" su <html> */
+.light {
+  --color-bg: #F5F5F5;
+  --color-surface: #FFFFFF;
+  --color-surface-raised: #F0F0F0;
+  --color-text: #1A1A1A;
+  --color-text-secondary: #6B7280;
+
+  --color-border: rgba(0, 0, 0, 0.1);
+  --color-border-soft: rgba(0, 0, 0, 0.05);
+  --color-border-strong: rgba(0, 0, 0, 0.15);
+  --color-overlay: rgba(0, 0, 0, 0.04);
+  --color-overlay-md: rgba(0, 0, 0, 0.08);
+  --color-overlay-lg: rgba(0, 0, 0, 0.12);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.16);
+
+  color-scheme: light;
 }
 
 html {

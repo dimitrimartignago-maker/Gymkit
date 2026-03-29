@@ -34,7 +34,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             "placeholder:text-[var(--color-text-secondary)]",
             error
               ? "border-[var(--color-error)] focus:border-[var(--color-error)]"
-              : "border-white/10 focus:border-[var(--color-accent)]",
+              : "border-[var(--color-border)] focus:border-[var(--color-accent)]",
             "disabled:opacity-50 disabled:cursor-not-allowed",
             className,
           ]
@@ -105,7 +105,7 @@ export function NumericInput({
         className={[
           "flex items-center h-[var(--input-height)] rounded-[var(--radius-md)]",
           "bg-[var(--color-surface-raised)] border",
-          error ? "border-[var(--color-error)]" : "border-white/10",
+          error ? "border-[var(--color-error)]" : "border-[var(--color-border)]",
           disabled ? "opacity-50" : "",
         ]
           .filter(Boolean)
@@ -115,7 +115,7 @@ export function NumericInput({
           type="button"
           onClick={decrement}
           disabled={disabled || (min !== undefined && value <= min)}
-          className="flex items-center justify-center w-12 h-full text-[var(--color-text-secondary)] hover:text-[var(--color-text)] disabled:opacity-30 transition-colors border-r border-white/10"
+          className="flex items-center justify-center w-12 h-full text-[var(--color-text-secondary)] hover:text-[var(--color-text)] disabled:opacity-30 transition-colors border-r border-[var(--color-border)]"
         >
           <Minus size={16} />
         </button>
@@ -136,7 +136,7 @@ export function NumericInput({
           type="button"
           onClick={increment}
           disabled={disabled || (max !== undefined && value >= max)}
-          className="flex items-center justify-center w-12 h-full text-[var(--color-text-secondary)] hover:text-[var(--color-text)] disabled:opacity-30 transition-colors border-l border-white/10"
+          className="flex items-center justify-center w-12 h-full text-[var(--color-text-secondary)] hover:text-[var(--color-text)] disabled:opacity-30 transition-colors border-l border-[var(--color-border)]"
         >
           <Plus size={16} />
         </button>

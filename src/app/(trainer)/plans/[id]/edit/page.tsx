@@ -92,7 +92,7 @@ export default async function EditPlanPage({ params }: Props) {
 
   return (
     <>
-      <div className="sticky top-0 z-10 bg-[var(--color-surface)] border-b border-white/10 px-4 md:px-6 py-4">
+      <div className="sticky top-0 z-10 bg-[var(--color-surface)] border-b border-[var(--color-border)] px-4 md:px-6 py-4">
         <h1 className="font-semibold text-[var(--color-text)]">
           Modifica Scheda
           <span className="ml-2 text-sm font-normal text-[var(--color-text-secondary)]">

@@ -31,7 +31,7 @@ export default async function ProfilePage() {
       </div>
 
       {/* Info card */}
-      <Card className="flex flex-col gap-0 divide-y divide-white/10 p-0 overflow-hidden">
+      <Card className="flex flex-col gap-0 divide-y divide-[var(--color-border)] p-0 overflow-hidden">
         <div className="flex items-center gap-3 px-4 py-4">
           <Mail size={18} className="text-[var(--color-text-secondary)] shrink-0" />
           <div className="flex flex-col min-w-0">
