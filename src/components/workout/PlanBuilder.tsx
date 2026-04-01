@@ -105,6 +105,7 @@ export function PlanBuilder({
   initialPlan,
   defaultClientId,
   isTemplate,
+  onSaveAsTemplate,
 }: Props) {
   const router = useRouter();
   const [step, setStep] = useState(0);
@@ -233,7 +234,11 @@ export function PlanBuilder({
     startTransition(async () => {
       const result = await savePlan({ ...plan, days: plan.days }, status);
       if (result.success) {
-        router.push(`/clients/${plan.clientId}`);
+        if (isTemplate) {
+          router.push(`/templates`);
+        } else {
+          router.push(`/clients/${plan.clientId}`);
+        }
         router.refresh();
       } else {
         setSaveError(result.error);
@@ -541,12 +546,14 @@ export function PlanBuilder({
     return (
       <div className="flex flex-col gap-5">
         <div className="bg-[var(--color-surface-raised)] rounded-[var(--radius-md)] p-4 flex flex-col gap-3">
+          {!isTemplate && (
           <div className="flex items-center justify-between">
             <span className="text-xs text-[var(--color-text-secondary)]">Cliente</span>
             <span className="text-sm font-medium text-[var(--color-text)]">
               {client ? `${client.first_name} ${client.last_name}` : "—"}
             </span>
           </div>
+          )}
           <div className="flex items-center justify-between">
             <span className="text-xs text-[var(--color-text-secondary)]">Scheda</span>
             <span className="text-sm font-medium text-[var(--color-text)]">{plan.name}</span>
