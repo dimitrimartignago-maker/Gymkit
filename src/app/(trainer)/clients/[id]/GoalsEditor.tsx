@@ -63,7 +63,7 @@ export function GoalsEditor({ clientId, initialGoals }: Props) {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setEditing(false)}
+              onClick={() => { setEditing(false); setError(""); }}
               disabled={loading}
             >
               Annulla
