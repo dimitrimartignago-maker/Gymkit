@@ -1,5 +1,6 @@
 "use server";
 
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { DayDraft, PlanDraft } from "@/components/workout/PlanBuilder";
 
@@ -9,13 +10,14 @@ async function getTrainer() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Non autenticato");
-  const { data: profile } = await supabase
+  const admin = createAdminClient();
+  const { data: profile } = await admin
     .from("profiles")
     .select("id, gym_id")
     .eq("id", user.id)
     .single();
   if (!profile) throw new Error("Profilo non trovato");
-  return { supabase, profile };
+  return { supabase: admin, profile };
 }
 
 async function upsertDays(
@@ -93,7 +95,7 @@ export async function savePlan(
         .from("workout_plans")
         .insert({
           gym_id: profile.gym_id,
-          client_id: plan.clientId,
+          client_id: plan.clientId ?? null,
           trainer_id: profile.id,
           name: plan.name.trim(),
           description: plan.description.trim() || null,

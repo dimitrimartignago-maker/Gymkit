@@ -42,7 +42,7 @@ export interface DayDraft {
 
 export interface PlanDraft {
   id?: string; // present in edit mode
-  clientId: string;
+  clientId: string | null;
   name: string;
   description: string;
   startsAt: string;
@@ -57,14 +57,16 @@ interface Props {
   exercises: ExerciseRow[];
   initialPlan?: PlanDraft;
   defaultClientId?: string;
+  isTemplate?: boolean;
+  onSaveAsTemplate?: () => void;
 }
 
-const STEPS = ["Cliente & Info", "Giornate", "Esercizi", "Review"];
+// STEPS is defined dynamically inside the component based on isTemplate
 
-function StepIndicator({ current }: { current: number }) {
+function StepIndicator({ current, steps }: { current: number; steps: string[] }) {
   return (
     <div className="flex items-center gap-1 overflow-x-auto pb-1">
-      {STEPS.map((label, i) => (
+      {steps.map((label, i) => (
         <div key={i} className="flex items-center gap-1 shrink-0">
           <div
             className={[
@@ -88,7 +90,7 @@ function StepIndicator({ current }: { current: number }) {
           >
             {label}
           </span>
-          {i < STEPS.length - 1 && (
+          {i < steps.length - 1 && (
             <ChevronRight size={12} className="text-white/20 mx-0.5" />
           )}
         </div>
@@ -102,15 +104,20 @@ export function PlanBuilder({
   exercises,
   initialPlan,
   defaultClientId,
+  isTemplate,
 }: Props) {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [isPending, startTransition] = useTransition();
   const [saveError, setSaveError] = useState<string | null>(null);
 
+  const STEPS = isTemplate
+    ? ["Info", "Giornate", "Esercizi", "Review"]
+    : ["Cliente & Info", "Giornate", "Esercizi", "Review"];
+
   const [plan, setPlan] = useState<PlanDraft>(
     initialPlan ?? {
-      clientId: defaultClientId ?? "",
+      clientId: isTemplate ? null : (defaultClientId ?? ""),
       name: "",
       description: "",
       startsAt: "",
@@ -124,7 +131,9 @@ export function PlanBuilder({
   const [pickerOpen, setPickerOpen] = useState(false);
 
   // ---- Step 1 validation ----
-  const step1Valid = plan.clientId !== "" && plan.name.trim() !== "";
+  const step1Valid = isTemplate
+    ? plan.name.trim() !== ""
+    : plan.clientId !== "" && plan.clientId !== null && plan.name.trim() !== "";
 
   // ---- Helpers ----
 
@@ -236,21 +245,23 @@ export function PlanBuilder({
 
   const renderStep1 = () => (
     <div className="flex flex-col gap-5">
-      <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium text-[var(--color-text)]">Cliente *</label>
-        <select
-          value={plan.clientId}
-          onChange={(e) => setPlan((p) => ({ ...p, clientId: e.target.value }))}
-          className="h-[var(--input-height)] rounded-[var(--radius-md)] px-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none"
-        >
-          <option value="">Seleziona cliente…</option>
-          {clients.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.first_name} {c.last_name}
-            </option>
-          ))}
-        </select>
-      </div>
+      {!isTemplate && (
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-[var(--color-text)]">Cliente *</label>
+          <select
+            value={plan.clientId ?? ""}
+            onChange={(e) => setPlan((p) => ({ ...p, clientId: e.target.value }))}
+            className="h-[var(--input-height)] rounded-[var(--radius-md)] px-4 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none"
+          >
+            <option value="">Seleziona cliente…</option>
+            {clients.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.first_name} {c.last_name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <Input
         label="Nome scheda *"
@@ -618,7 +629,7 @@ export function PlanBuilder({
 
   return (
     <div className="p-4 md:p-6 max-w-2xl mx-auto flex flex-col gap-6">
-      <StepIndicator current={step} />
+      <StepIndicator current={step} steps={STEPS} />
 
       <div>{stepContent[step]()}</div>
 
