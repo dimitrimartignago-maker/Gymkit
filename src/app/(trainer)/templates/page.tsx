@@ -1,12 +1,12 @@
 // src/app/(trainer)/templates/page.tsx
 import { getTrainerContext } from "@/lib/supabase/get-trainer-context";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { Button } from "@/components/ui/Button";
 import { Plus, FileText } from "lucide-react";
 import Link from "next/link";
 
 export default async function TemplatesPage() {
   const { profile } = await getTrainerContext();
-  const { createAdminClient } = await import("@/lib/supabase/admin");
   const admin = createAdminClient();
 
   const { data: templates } = await admin
