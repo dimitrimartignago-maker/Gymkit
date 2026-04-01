@@ -1,5 +1,6 @@
 "use server";
 
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 async function getTrainer() {
@@ -8,13 +9,14 @@ async function getTrainer() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Non autenticato");
-  const { data: profile } = await supabase
+  const admin = createAdminClient();
+  const { data: profile } = await admin
     .from("profiles")
     .select("id, gym_id")
     .eq("id", user.id)
     .single();
   if (!profile) throw new Error("Profilo non trovato");
-  return { supabase, profile };
+  return { supabase: admin, profile };
 }
 
 // Generate class_slots for a given week from active course_schedules.

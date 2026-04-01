@@ -1,5 +1,6 @@
 "use server";
 
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export async function bookSlot(
@@ -12,8 +13,10 @@ export async function bookSlot(
     } = await supabase.auth.getUser();
     if (!user) return { success: false, error: "Non autenticato." };
 
+    const admin = createAdminClient();
+
     // Check existing non-cancelled booking
-    const { data: existing } = await supabase
+    const { data: existing } = await admin
       .from("bookings")
       .select("id, status")
       .eq("class_slot_id", slotId)
@@ -24,7 +27,7 @@ export async function bookSlot(
     if (existing) return { success: false, error: "Hai già una prenotazione per questo slot." };
 
     // Get slot capacity info
-    const { data: slotData } = await supabase
+    const { data: slotData } = await admin
       .from("class_slots")
       .select("id, max_capacity_override, course_id, is_cancelled, starts_at")
       .eq("id", slotId)
@@ -36,7 +39,7 @@ export async function bookSlot(
       return { success: false, error: "Non puoi prenotare uno slot passato." };
     }
 
-    const { data: course } = await supabase
+    const { data: course } = await admin
       .from("courses")
       .select("max_capacity")
       .eq("id", slotData.course_id)
@@ -45,7 +48,7 @@ export async function bookSlot(
     const capacity = slotData.max_capacity_override ?? course?.max_capacity ?? 0;
 
     // Count confirmed bookings
-    const { count: confirmedCount } = await supabase
+    const { count: confirmedCount } = await admin
       .from("bookings")
       .select("*", { count: "exact", head: true })
       .eq("class_slot_id", slotId)
@@ -56,7 +59,7 @@ export async function bookSlot(
 
     let waitlistPosition: number | null = null;
     if (isWaitlist) {
-      const { count: waitlistCount } = await supabase
+      const { count: waitlistCount } = await admin
         .from("bookings")
         .select("*", { count: "exact", head: true })
         .eq("class_slot_id", slotId)
@@ -64,14 +67,14 @@ export async function bookSlot(
       waitlistPosition = (waitlistCount ?? 0) + 1;
     }
 
-    const { error } = await supabase.from("bookings").insert({
+    const { error } = await admin.from("bookings").insert({
       class_slot_id: slotId,
       client_id: user.id,
       status: isWaitlist ? "waitlist" : "confirmed",
       waitlist_position: waitlistPosition,
     });
 
-    if (error) return { success: false, error: "Errore nella prenotazione." };
+    if (error) return { success: false, error: error.message ?? "Errore nella prenotazione." };
     return { success: true, status: isWaitlist ? "waitlist" : "confirmed" };
   } catch {
     return { success: false, error: "Errore imprevisto." };
@@ -89,14 +92,16 @@ export async function cancelBooking(
     } = await supabase.auth.getUser();
     if (!user) return { success: false, error: "Non autenticato." };
 
+    const admin = createAdminClient();
+
     // Get gym cancellation policy
-    const { data: profile } = await supabase
+    const { data: profile } = await admin
       .from("profiles")
       .select("gym_id")
       .eq("id", user.id)
       .single();
 
-    const { data: gym } = await supabase
+    const { data: gym } = await admin
       .from("gym")
       .select("booking_cancellation_hours")
       .eq("id", profile?.gym_id ?? "")
@@ -105,7 +110,7 @@ export async function cancelBooking(
     const hoursLimit = gym?.booking_cancellation_hours ?? 24;
 
     // Get slot start time
-    const { data: slot } = await supabase
+    const { data: slot } = await admin
       .from("class_slots")
       .select("starts_at")
       .eq("id", slotId)
@@ -123,7 +128,7 @@ export async function cancelBooking(
       };
     }
 
-    const { error } = await supabase
+    const { error } = await admin
       .from("bookings")
       .update({ status: "cancelled", cancelled_at: new Date().toISOString() })
       .eq("id", bookingId)

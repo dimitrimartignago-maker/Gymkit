@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
 import { Check, Copy, Link, Mail, Plus, ToggleLeft, ToggleRight, Trash2, UserPlus } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import {
   deleteInvitation,
   inviteClient,
@@ -55,6 +55,8 @@ export function TrainersClient({ trainers: initial, invitations: initialInvites 
 
   const [trainers, setTrainers] = useState(initial);
   const [invitations, setInvitations] = useState(initialInvites);
+  useEffect(() => { setTrainers(initial); }, [initial]);
+  useEffect(() => { setInvitations(initialInvites); }, [initialInvites]);
 
   // Modal state
   type ModalType = "trainer" | "client" | "link";

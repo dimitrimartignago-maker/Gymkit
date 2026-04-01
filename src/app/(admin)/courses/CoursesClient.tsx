@@ -6,7 +6,7 @@ import { Modal } from "@/components/ui/Modal";
 import type { Database } from "@/lib/supabase/types";
 import { Edit2, Plus, ToggleLeft, ToggleRight } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState } from "react";
 import { createCourse, toggleCourseStatus, updateCourse } from "./actions";
 
 type CourseRow = Database["public"]["Tables"]["courses"]["Row"];
@@ -45,11 +45,12 @@ interface Props {
 export function CoursesClient({ courses: initial, trainers }: Props) {
   const router = useRouter();
   const [courses, setCourses] = useState(initial);
+  useEffect(() => { setCourses(initial); }, [initial]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<CourseRow | null>(null);
   const [form, setForm] = useState<CourseForm>(DEFAULT_FORM);
   const [error, setError] = useState("");
-  const [isPending, startTransition] = useTransition();
+  const [isPending, setIsPending] = useState(false);
 
   function openCreate() {
     setEditing(null);
@@ -77,14 +78,14 @@ export function CoursesClient({ courses: initial, trainers }: Props) {
     setForm((f) => ({ ...f, ...patch }));
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!form.name.trim()) {
       setError("Il nome è obbligatorio.");
       return;
     }
     setError("");
-
-    startTransition(async () => {
+    setIsPending(true);
+    try {
       const data = {
         name: form.name,
         description: form.description,
@@ -106,20 +107,21 @@ export function CoursesClient({ courses: initial, trainers }: Props) {
 
       setModalOpen(false);
       router.refresh();
-    });
+    } finally {
+      setIsPending(false);
+    }
   }
 
-  function handleToggle(course: CourseRow) {
-    startTransition(async () => {
-      const result = await toggleCourseStatus(course.id, !course.is_active);
-      if (result.success) {
-        setCourses((prev) =>
-          prev.map((c) =>
-            c.id === course.id ? { ...c, is_active: !course.is_active } : c
-          )
-        );
-      }
-    });
+  async function handleToggle(course: CourseRow) {
+    const result = await toggleCourseStatus(course.id, !course.is_active);
+    if (result.success) {
+      setCourses((prev) =>
+        prev.map((c) =>
+          c.id === course.id ? { ...c, is_active: !course.is_active } : c
+        )
+      );
+      router.refresh();
+    }
   }
 
   const trainerNameMap = Object.fromEntries(

@@ -1,6 +1,8 @@
 "use server";
 
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
 import { randomBytes } from "crypto";
 
 async function getAdmin() {
@@ -9,13 +11,14 @@ async function getAdmin() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Non autenticato");
-  const { data: profile } = await supabase
+  const admin = createAdminClient();
+  const { data: profile } = await admin
     .from("profiles")
     .select("id, gym_id, role")
     .eq("id", user.id)
     .single();
   if (!profile || profile.role !== "admin") throw new Error("Non autorizzato");
-  return { supabase, profile };
+  return { supabase: admin, profile };
 }
 
 interface InviteTrainerData {
@@ -44,6 +47,7 @@ export async function inviteTrainer(
     });
 
     if (error) return { success: false, error: "Errore nella creazione dell'invito." };
+    revalidatePath("/trainers");
     return { success: true, token };
   } catch {
     return { success: false, error: "Errore imprevisto." };
@@ -68,6 +72,7 @@ export async function inviteClient(
     });
 
     if (error) return { success: false, error: "Errore nella creazione dell'invito." };
+    revalidatePath("/trainers");
     return { success: true, token };
   } catch {
     return { success: false, error: "Errore imprevisto." };
@@ -85,6 +90,7 @@ export async function deleteInvitation(
       .eq("id", id)
       .eq("gym_id", profile.gym_id);
     if (error) return { success: false, error: "Errore nell'eliminazione." };
+    revalidatePath("/trainers");
     return { success: true };
   } catch {
     return { success: false, error: "Errore imprevisto." };
@@ -104,6 +110,7 @@ export async function toggleTrainerStatus(
       .eq("gym_id", profile.gym_id)
       .eq("role", "trainer");
     if (error) return { success: false, error: "Errore nell'aggiornamento." };
+    revalidatePath("/trainers");
     return { success: true };
   } catch {
     return { success: false, error: "Errore imprevisto." };

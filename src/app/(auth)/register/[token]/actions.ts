@@ -84,14 +84,17 @@ export async function registerWithToken(formData: FormData) {
     email,
     phone,
     role: invitation.role as Role,
-    invited_by: null, // verrà popolato dalla FK nell'invito
+    invited_by: null,
   });
 
   if (profileError) {
     // Rollback: elimina l'utente auth appena creato
     await supabase.auth.admin?.deleteUser(authData.user.id);
-    return { error: "Errore nella creazione del profilo. Riprova." };
+    return { error: `Errore nella creazione del profilo: ${profileError.message}` };
   }
+
+  // 3b. Refresh del JWT per includere i nuovi claims app_metadata (role, gym_id)
+  await supabase.auth.refreshSession();
 
   // 4. Se c'è un trainer pre-assegnato, crea la relazione trainer_clients
   if (invitation.pre_assigned_trainer && invitation.role === "client") {

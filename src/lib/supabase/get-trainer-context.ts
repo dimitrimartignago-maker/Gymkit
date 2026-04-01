@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { createAdminClient } from "./admin";
 import { createClient } from "./server";
 
 export async function getTrainerContext() {
@@ -9,7 +10,8 @@ export async function getTrainerContext() {
 
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase
+  const admin = createAdminClient();
+  const { data: profile } = await admin
     .from("profiles")
     .select("id, gym_id, role, first_name, last_name")
     .eq("id", user.id)
@@ -17,5 +19,5 @@ export async function getTrainerContext() {
 
   if (!profile) redirect("/login");
 
-  return { supabase, user, profile };
+  return { supabase: admin, user, profile };
 }

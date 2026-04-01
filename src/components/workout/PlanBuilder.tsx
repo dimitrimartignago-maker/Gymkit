@@ -107,7 +107,7 @@ export function PlanBuilder({
   initialPlan,
   defaultClientId,
   isTemplate,
-  onSaveAsTemplate,
+  // onSaveAsTemplate is reserved for future external callers; internal logic uses handleSaveAsTemplate
 }: Props) {
   const router = useRouter();
   const [step, setStep] = useState(0);

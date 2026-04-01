@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { CSSProperties } from "react";
 import "./globals.css";
 import { createClient } from "@/lib/supabase/server";
+import { SwUnregister } from "@/components/SwUnregister";
 
 export const metadata: Metadata = {
   title: "GymKit",
@@ -40,6 +41,7 @@ export default async function RootLayout({
   return (
     <html lang="it" className="dark" style={gymStyle as CSSProperties}>
       <body className="antialiased font-body bg-[var(--color-bg)] text-[var(--color-text)]">
+        {process.env.NODE_ENV !== "production" && <SwUnregister />}
         {children}
       </body>
     </html>

@@ -1,5 +1,6 @@
 "use server";
 
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { roleHomeRoutes, type Role } from "@/config/permissions";
 
@@ -22,10 +23,11 @@ export async function signIn(
   });
 
   if (error || !data.user) {
-    return { error: "Credenziali non valide. Riprova." };
+    return { error: error?.message ?? "Credenziali non valide. Riprova." };
   }
 
-  const { data: profile } = await supabase
+  const admin = createAdminClient();
+  const { data: profile } = await admin
     .from("profiles")
     .select("role")
     .eq("id", data.user.id)

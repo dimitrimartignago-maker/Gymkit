@@ -1,5 +1,6 @@
 "use server";
 
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 
@@ -20,13 +21,14 @@ async function getTrainer() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Non autenticato");
-  const { data: profile } = await supabase
+  const admin = createAdminClient();
+  const { data: profile } = await admin
     .from("profiles")
     .select("id, gym_id")
     .eq("id", user.id)
     .single();
   if (!profile) throw new Error("Profilo non trovato");
-  return { supabase, profile };
+  return { supabase: admin, profile };
 }
 
 export async function createExercise(data: ExerciseFormData): Promise<ActionResult> {

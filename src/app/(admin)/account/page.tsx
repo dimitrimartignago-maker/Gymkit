@@ -2,6 +2,7 @@ import { Card, ThemeToggle } from "@/components/ui";
 import { getAdminContext } from "@/lib/supabase/get-admin-context";
 import { signOut } from "@/lib/actions/auth";
 import { LogOut, Mail, Phone, User } from "lucide-react";
+import { ProfileEditClient } from "./ProfileEditClient";
 
 export default async function AdminProfilePage() {
   const { user, supabase } = await getAdminContext();
@@ -19,22 +20,25 @@ export default async function AdminProfilePage() {
 
   return (
     <div className="p-4 md:p-6 flex flex-col gap-6 max-w-xl">
-      <h1 className="text-xl font-semibold text-[var(--color-text)]">
-        Profilo
-      </h1>
+      <h1 className="text-xl font-semibold text-[var(--color-text)]">Profilo</h1>
 
       {/* Avatar + name */}
       <div className="flex flex-col items-center gap-3 py-4">
         <div className="w-20 h-20 rounded-full bg-[var(--color-accent)]/20 flex items-center justify-center text-[var(--color-accent)] font-bold text-2xl">
           {initials.toUpperCase() || <User size={32} />}
         </div>
-        <div className="text-center">
+        <div className="text-center flex flex-col items-center gap-1">
           <p className="font-semibold text-lg text-[var(--color-text)]">
             {profile.first_name} {profile.last_name}
           </p>
           <p className="text-sm text-[var(--color-text-secondary)] capitalize">
             {profile.role}
           </p>
+          <ProfileEditClient
+            firstName={profile.first_name ?? ""}
+            lastName={profile.last_name ?? ""}
+            phone={profile.phone}
+          />
         </div>
       </div>
 
@@ -44,7 +48,7 @@ export default async function AdminProfilePage() {
           <Mail size={18} className="text-[var(--color-text-secondary)] shrink-0" />
           <div className="flex flex-col min-w-0">
             <span className="text-xs text-[var(--color-text-secondary)]">Email</span>
-            <span className="text-sm text-[var(--color-text)] truncate">{profile.email}</span>
+            <span className="text-sm text-[var(--color-text)] truncate">{user.email}</span>
           </div>
         </div>
         <div className="flex items-center gap-3 px-4 py-4">

@@ -1,5 +1,6 @@
 "use server";
 
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 interface SetLogData {
@@ -30,7 +31,8 @@ export async function saveWorkoutLog(
     } = await supabase.auth.getUser();
     if (!user) return { success: false, error: "Non autenticato." };
 
-    const { data: log, error: logError } = await supabase
+    const admin = createAdminClient();
+    const { data: log, error: logError } = await admin
       .from("workout_logs")
       .insert({
         client_id: user.id,
@@ -49,7 +51,7 @@ export async function saveWorkoutLog(
     }
 
     if (input.sets.length > 0) {
-      const { error: setsError } = await supabase
+      const { error: setsError } = await admin
         .from("workout_log_sets")
         .insert(
           input.sets.map((s) => ({

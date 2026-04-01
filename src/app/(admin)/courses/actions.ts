@@ -1,6 +1,8 @@
 "use server";
 
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
 
 interface CourseFormData {
   name: string;
@@ -18,13 +20,14 @@ async function getAdmin() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Non autenticato");
-  const { data: profile } = await supabase
+  const admin = createAdminClient();
+  const { data: profile } = await admin
     .from("profiles")
     .select("id, gym_id, role")
     .eq("id", user.id)
     .single();
   if (!profile || profile.role !== "admin") throw new Error("Non autorizzato");
-  return { supabase, profile };
+  return { supabase: admin, profile };
 }
 
 export async function createCourse(
@@ -43,6 +46,7 @@ export async function createCourse(
       is_active: data.is_active,
     });
     if (error) return { success: false, error: "Errore nella creazione." };
+    revalidatePath("/courses");
     return { success: true };
   } catch {
     return { success: false, error: "Errore imprevisto." };
@@ -69,6 +73,7 @@ export async function updateCourse(
       .eq("id", id)
       .eq("gym_id", profile.gym_id);
     if (error) return { success: false, error: "Errore nell'aggiornamento." };
+    revalidatePath("/courses");
     return { success: true };
   } catch {
     return { success: false, error: "Errore imprevisto." };
@@ -87,6 +92,7 @@ export async function toggleCourseStatus(
       .eq("id", id)
       .eq("gym_id", profile.gym_id);
     if (error) return { success: false, error: "Errore." };
+    revalidatePath("/courses");
     return { success: true };
   } catch {
     return { success: false, error: "Errore imprevisto." };

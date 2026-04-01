@@ -17,8 +17,9 @@ CREATE TABLE gym (
   name TEXT NOT NULL,
   slug TEXT UNIQUE NOT NULL,
   logo_url TEXT,
-  primary_color TEXT DEFAULT '#000000',
+  primary_color TEXT DEFAULT '#1A1A2E',
   secondary_color TEXT DEFAULT '#FFFFFF',
+  accent_color TEXT DEFAULT '#E94560',        -- colore accent (bottoni, highlights)
   timezone TEXT DEFAULT 'Europe/Rome',
   booking_cancellation_hours INT DEFAULT 2,
   created_at TIMESTAMPTZ DEFAULT now()
@@ -262,6 +263,83 @@ Ogni tabella ha RLS abilitato. Logica per ruolo:
 | bookings | Read tutti | Read propri slot | CRUD own |
 | invitations | CRUD | Create (solo role=client) | Nessuno |
 
+### 1.6 RLS — Implementazione JWT Claims
+
+**Problema**: Le policy RLS che leggono `profiles` per determinare il ruolo causano ricorsione infinita su `profiles` stessa.
+
+**Soluzione adottata**: JWT claims in `auth.users.raw_app_meta_data`.
+
+**Trigger di sincronizzazione** (si esegue ad ogni INSERT/UPDATE su `profiles`):
+```sql
+CREATE OR REPLACE FUNCTION sync_profile_to_auth_metadata()
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER AS $$
+BEGIN
+  UPDATE auth.users
+  SET raw_app_meta_data = raw_app_meta_data ||
+    jsonb_build_object('role', NEW.role, 'gym_id', NEW.gym_id::text)
+  WHERE id = NEW.id;
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER trg_sync_profile_metadata
+AFTER INSERT OR UPDATE OF role, gym_id ON profiles
+FOR EACH ROW EXECUTE FUNCTION sync_profile_to_auth_metadata();
+```
+
+**Policy su `profiles`** (senza query DB, solo JWT):
+```sql
+-- Ogni utente legge solo il proprio profilo
+CREATE POLICY "users read own profile" ON profiles FOR SELECT
+  USING (id = auth.uid());
+
+-- Admin gestisce tutti i profili del proprio gym
+CREATE POLICY "admin manage gym" ON profiles FOR ALL
+  USING (
+    (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
+    AND gym_id = (auth.jwt() -> 'app_metadata' ->> 'gym_id')::uuid
+  );
+
+-- Trainer legge i propri clienti
+CREATE POLICY "trainer read own and clients" ON profiles FOR SELECT
+  USING (
+    (auth.jwt() -> 'app_metadata' ->> 'role') = 'trainer'
+    AND (
+      id = auth.uid()
+      OR id IN (
+        SELECT client_id FROM trainer_clients
+        WHERE trainer_id = auth.uid() AND is_active = true
+      )
+    )
+  );
+
+-- Ogni utente aggiorna il proprio profilo
+CREATE POLICY "users update own profile" ON profiles FOR UPDATE
+  USING (id = auth.uid());
+```
+
+**Nota**: dopo la registrazione è necessario chiamare `supabase.auth.refreshSession()` per aggiornare il JWT con i nuovi claims prima del redirect.
+
+### 1.7 Admin Client (Service Role)
+
+Per le pagine admin, l'accesso ai dati usa un client Supabase con service role key (bypassa RLS completamente). Questo è by design: l'admin deve poter leggere/scrivere tutte le tabelle del proprio gym senza che RLS aggiunga complessità per ogni tabella.
+
+```ts
+// src/lib/supabase/admin.ts
+import { createClient } from "@supabase/supabase-js";
+export function createAdminClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  );
+}
+```
+
+Il client admin **non va mai esposto al browser** — usato solo in Server Components e Server Actions.
+
+Il middleware usa `createServerClient` (da `@supabase/ssr`) con service role key invece di `createAdminClient`, perché il middleware gira in Edge Runtime e non supporta `@supabase/supabase-js` direttamente.
+
 ---
 
 ## 2. Design System
@@ -277,15 +355,27 @@ Ogni tabella ha RLS abilitato. Logica per ruolo:
 
 ```css
 :root {
-  /* Colori — sovrascritti dal config per palestra */
+  /* Colori brand — iniettati dal root layout leggendo gym.primary_color / gym.accent_color */
   --color-primary: var(--gym-primary, #1A1A2E);
   --color-primary-light: var(--gym-primary-light, #16213E);
   --color-accent: var(--gym-accent, #E94560);
+
+  /* Tema dark (default) */
   --color-bg: #0F0F0F;
   --color-surface: #1A1A1A;
   --color-surface-raised: #252525;
   --color-text: #F5F5F5;
   --color-text-secondary: #A0A0A0;
+
+  /* Bordi e overlay — cambiano con il tema */
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-border-soft: rgba(255, 255, 255, 0.05);
+  --color-border-strong: rgba(255, 255, 255, 0.2);
+  --color-overlay: rgba(255, 255, 255, 0.05);
+  --color-overlay-md: rgba(255, 255, 255, 0.1);
+  --color-overlay-lg: rgba(255, 255, 255, 0.15);
+
+  /* Stato */
   --color-success: #4ADE80;
   --color-warning: #FBBF24;
   --color-error: #F87171;
@@ -313,9 +403,9 @@ Ogni tabella ha RLS abilitato. Logica per ruolo:
   --radius-full: 9999px;
 
   /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
-  --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
 
   /* Sizing */
   --button-height-sm: 36px;
@@ -324,6 +414,28 @@ Ogni tabella ha RLS abilitato. Logica per ruolo:
   --input-height: 48px;
   --nav-height: 64px;
   --bottom-bar-height: 72px;
+}
+
+/* Tema light — classe aggiunta su <html> dall'hook useTheme */
+.light {
+  --color-bg: #F5F5F5;
+  --color-surface: #FFFFFF;
+  --color-surface-raised: #F0F0F0;
+  --color-text: #1A1A1A;
+  --color-text-secondary: #6B7280;
+
+  --color-border: rgba(0, 0, 0, 0.1);
+  --color-border-soft: rgba(0, 0, 0, 0.05);
+  --color-border-strong: rgba(0, 0, 0, 0.15);
+  --color-overlay: rgba(0, 0, 0, 0.04);
+  --color-overlay-md: rgba(0, 0, 0, 0.08);
+  --color-overlay-lg: rgba(0, 0, 0, 0.12);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.16);
+
+  color-scheme: light;
 }
 ```
 
@@ -396,7 +508,18 @@ Reminder push X ore prima (futuro)
 
 Default: **dark**. Le palestre sono ambienti scuri. Il cliente usa l'app tra le serie con le pupille dilatate. Un tema light acceca.
 
-Toggle disponibile per il trainer che lavora in ufficio/reception con luce naturale.
+Toggle disponibile su tutti i ruoli (trainer, client, admin).
+
+**Implementazione:**
+- `src/lib/hooks/use-theme.ts` — hook client-side, legge/scrive `localStorage("gymkit-theme")`, default `"dark"`, toggling classe `.light` su `<html>`
+- `src/components/ui/ThemeToggle.tsx` — icona Sun/Moon, usa `useTheme`
+- Il toggle è posizionato in: sidebar admin, sidebar trainer + header mobile trainer, pagina profilo client, pagina profilo admin
+- La classe `.dark` su `<html>` è permanente (server-rendered); `useTheme` aggiunge/rimuove `.light` sopra di essa
+
+**Colori dinamici dalla DB:**
+- `root layout.tsx` è `async`: legge `gym.primary_color` e `gym.accent_color` da Supabase e li inietta come CSS custom properties inline su `<html style="--gym-primary: ...; --gym-accent: ...;">`
+- I CSS var `--color-accent` e `--color-primary` ereditano automaticamente i valori DB con fallback ai default del design system
+- Admin può modificare entrambi i colori dalla pagina Impostazioni
 
 ### 2.6 PWA Config
 
@@ -433,9 +556,9 @@ Service worker per cache della scheda attiva → consultabile offline.
       /workout/[dayId]/log/page.tsx   ← logging allenamento
       /booking/page.tsx               ← calendario corsi
       /booking/[slotId]/page.tsx      ← dettaglio + prenota
-      /profile/page.tsx
+      /profile/page.tsx               ← profilo + ThemeToggle
     /(trainer)
-      /layout.tsx                     ← sidebar/nav trainer
+      /layout.tsx                     ← sidebar/nav trainer + ThemeToggle
       /clients/page.tsx
       /clients/[id]/page.tsx
       /plans/new/page.tsx             ← crea scheda
@@ -443,30 +566,45 @@ Service worker per cache della scheda attiva → consultabile offline.
       /exercises/page.tsx             ← libreria
       /schedule/page.tsx              ← gestione slot corsi
     /(admin)
-      /layout.tsx
+      /layout.tsx                     ← sidebar admin + ThemeToggle
+      /account/page.tsx               ← profilo admin (URL: /account)
       /dashboard/page.tsx
       /trainers/page.tsx
+      /members/page.tsx               ← lista clienti + assegnazione trainer
       /courses/page.tsx
-      /settings/page.tsx
+      /settings/page.tsx              ← primary_color + accent_color
   /components
     /ui                               ← design system base
+      /ThemeToggle.tsx                ← toggle Sun/Moon, usa useTheme
     /workout                          ← componenti modulo schede
     /booking                          ← componenti modulo booking
+    /SwUnregister.tsx                 ← unregistra service worker vecchi in dev
   /config
     /gym-config.ts                    ← configurazione istanza
     /modules.ts                       ← registry moduli attivi
     /permissions.ts                   ← matrice ruoli/permessi
   /lib
+    /actions
+      /auth.ts                        ← signOut() condiviso tra ruoli
     /supabase
       /client.ts
       /server.ts
+      /admin.ts                       ← createAdminClient() con service role key (solo server)
+      /get-admin-context.ts           ← auth check + profilo + restituisce admin client
+      /get-trainer-context.ts         ← auth check + profilo + restituisce client autenticato
+      /get-client-context.ts          ← auth check + profilo + restituisce client autenticato
       /types.ts                       ← tipi generati da Supabase
     /hooks
+      /use-theme.ts                   ← dark/light toggle, localStorage
       /use-workout-log.ts
       /use-booking.ts
       /use-permissions.ts
-  /middleware.ts                       ← auth + redirect per ruolo
+  /middleware.ts                       ← auth + redirect per ruolo (Edge Runtime)
 ```
+
+**Note di routing:**
+- Il profilo admin è a `/account` (non `/profile`) per evitare conflitti di route con `/(client)/profile` — entrambi risolverebbero allo stesso URL in App Router
+- Il middleware mappa `/account` → ruolo `admin`
 
 ---
 
@@ -476,11 +614,13 @@ Service worker per cache della scheda attiva → consultabile offline.
 |---|---|---|
 | 1 | Template one-shot, non SaaS | Modello di vendita scelto |
 | 2 | PWA, no nativo | Singolo codebase, deploy istantaneo, Capacitor come escape hatch |
-| 3 | Supabase Auth + RLS | Auth gestita, sicurezza a livello DB, zero backend custom |
+| 3 | Supabase Auth + RLS con JWT claims | Auth gestita, sicurezza a livello DB senza ricorsione; role e gym_id in app_metadata |
+| 11 | Tutti i context (admin/trainer/client) usano service role key | Le policy JWT claims coprono solo `profiles`. Le altre tabelle (`trainer_clients`, `workout_plans`, ecc.) non hanno policy RLS configurate — il service role bypassa RLS e le query filtrano già per ruolo/id a livello applicativo (server-only) |
+| 12 | Middleware usa createServerClient (non createAdminClient) | Edge Runtime non supporta @supabase/supabase-js; @supabase/ssr è Edge-compatible |
 | 4 | Libreria esercizi pre-caricata (~150-200) a livello palestra | Riduce tempo di setup, evita conflitti su riassegnazione clienti, trainer aggiunge i suoi (is_default=false) |
 | 5 | Onboarding ibrido QR/link | Bassa frizione, trainer mantiene controllo |
 | 6 | Config strutturale = dev, operatività = admin | Limita complessità pannello admin, genera revenue su modifiche |
-| 7 | Dark mode di default | Contesto d'uso (palestra, luce bassa) |
+| 7 | Dark mode di default, toggle light disponibile | Contesto d'uso (palestra, luce bassa); toggle per trainer/admin in ufficio |
 | 8 | Cliente logga da solo | Trainer non appesantito, cliente responsabilizzato |
 | 9 | Scheda con versioning | Storico preservato, progressione tracciabile |
 | 10 | reps come TEXT | Supporta "8-12", "AMRAP", "30sec", non solo numeri |

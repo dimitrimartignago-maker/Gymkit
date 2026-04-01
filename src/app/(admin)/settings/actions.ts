@@ -1,5 +1,6 @@
 "use server";
 
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
@@ -22,7 +23,8 @@ export async function updateGymSettings(
     } = await supabase.auth.getUser();
     if (!user) return { success: false, error: "Non autenticato." };
 
-    const { data: profile } = await supabase
+    const admin = createAdminClient();
+    const { data: profile } = await admin
       .from("profiles")
       .select("gym_id, role")
       .eq("id", user.id)
@@ -32,7 +34,7 @@ export async function updateGymSettings(
       return { success: false, error: "Non autorizzato." };
     }
 
-    const { error } = await supabase
+    const { error } = await admin
       .from("gym")
       .update({
         name: data.name.trim(),

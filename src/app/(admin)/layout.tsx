@@ -6,6 +6,7 @@ import { ThemeToggle } from "@/components/ui";
 const adminNavItems = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/trainers", label: "Trainer" },
+  { href: "/members", label: "Clienti" },
   { href: "/courses", label: "Corsi" },
   { href: "/settings", label: "Impostazioni" },
   { href: "/account", label: "Profilo" },
