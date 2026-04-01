@@ -72,7 +72,7 @@ export default async function EditPlanPage({ params }: Props) {
 
   const initialPlan: PlanDraft = {
     id: rawPlan.id,
-    clientId: rawPlan.client_id,
+    clientId: rawPlan.client_id ?? "",
     name: rawPlan.name,
     description: rawPlan.description ?? "",
     startsAt: rawPlan.starts_at ?? "",

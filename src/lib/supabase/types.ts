@@ -211,7 +211,7 @@ export interface Database {
         Row: {
           id: string;
           gym_id: string;
-          client_id: string;
+          client_id: string | null;
           trainer_id: string;
           name: string;
           description: string | null;
@@ -220,13 +220,14 @@ export interface Database {
           starts_at: string | null;
           expires_at: string | null;
           previous_version_id: string | null;
+          source_template_id: string | null;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id?: string;
           gym_id: string;
-          client_id: string;
+          client_id?: string | null;
           trainer_id: string;
           name: string;
           description?: string | null;
@@ -235,12 +236,13 @@ export interface Database {
           starts_at?: string | null;
           expires_at?: string | null;
           previous_version_id?: string | null;
+          source_template_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           gym_id?: string;
-          client_id?: string;
+          client_id?: string | null;
           trainer_id?: string;
           name?: string;
           description?: string | null;
@@ -249,6 +251,7 @@ export interface Database {
           starts_at?: string | null;
           expires_at?: string | null;
           previous_version_id?: string | null;
+          source_template_id?: string | null;
           updated_at?: string;
         };
         Relationships: [];
@@ -276,7 +279,15 @@ export interface Database {
           day_order?: number;
           notes?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "plan_days_plan_id_fkey";
+            columns: ["plan_id"];
+            isOneToOne: false;
+            referencedRelation: "workout_plans";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       plan_exercises: {
         Row: {
@@ -316,7 +327,15 @@ export interface Database {
           notes?: string | null;
           superset_group?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "plan_exercises_plan_day_id_fkey";
+            columns: ["plan_day_id"];
+            isOneToOne: false;
+            referencedRelation: "plan_days";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       workout_logs: {
         Row: {
