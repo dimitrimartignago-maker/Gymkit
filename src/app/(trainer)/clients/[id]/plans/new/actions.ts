@@ -27,6 +27,17 @@ export async function createPlanForClient(
       .single();
     if (!profile) return { success: false, error: "Profilo non trovato." };
 
+    // Verifica che il trainer sia associato al cliente
+    const { data: relation } = await admin
+      .from("trainer_clients")
+      .select("client_id")
+      .eq("trainer_id", profile.id)
+      .eq("client_id", input.clientId)
+      .eq("is_active", true)
+      .single();
+
+    if (!relation) return { success: false, error: "Non autorizzato." };
+
     if (input.mode === "template" && input.templateId) {
       // Clona dal template
       return await clonePlan(input.templateId, {

@@ -15,6 +15,7 @@ export function GoalsEditor({ clientId, initialGoals }: Props) {
   const [goals, setGoals] = useState(initialGoals);
   const [draft, setDraft] = useState(initialGoals);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   async function handleSave() {
     setLoading(true);
@@ -23,6 +24,8 @@ export function GoalsEditor({ clientId, initialGoals }: Props) {
       if (result.success) {
         setGoals(draft);
         setEditing(false);
+      } else {
+        setError(result.error ?? "Errore nel salvataggio.");
       }
     } finally {
       setLoading(false);
@@ -38,7 +41,7 @@ export function GoalsEditor({ clientId, initialGoals }: Props) {
         </div>
         {!editing && (
           <button
-            onClick={() => { setDraft(goals); setEditing(true); }}
+            onClick={() => { setDraft(goals); setEditing(true); setError(""); }}
             className="text-xs text-[var(--color-text-secondary)] hover:text-[var(--color-accent)] transition-colors"
           >
             Modifica
@@ -55,6 +58,7 @@ export function GoalsEditor({ clientId, initialGoals }: Props) {
             placeholder="Es. Perdere peso, aumentare massa, migliorare resistenza..."
             className="w-full rounded-[var(--radius-md)] px-3 py-2 bg-[var(--color-surface-raised)] text-[var(--color-text)] border border-[var(--color-border)] focus:border-[var(--color-accent)] outline-none text-sm placeholder:text-[var(--color-text-secondary)] resize-none transition-colors"
           />
+          {error && <p className="text-xs text-[var(--color-error)]">{error}</p>}
           <div className="flex gap-2 justify-end">
             <Button
               variant="ghost"

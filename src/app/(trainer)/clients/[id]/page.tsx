@@ -35,7 +35,7 @@ export default async function ClientDetailPage({ params }: Props) {
       .single(),
     supabase
       .from("workout_plans")
-      .select("id, name, status, version, previous_version_id, starts_at, expires_at, updated_at")
+      .select("id, name, status, version, starts_at, expires_at, updated_at")
       .eq("client_id", params.id)
       .eq("trainer_id", profile.id)
       .order("updated_at", { ascending: false }),

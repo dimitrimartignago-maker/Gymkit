@@ -30,6 +30,7 @@ export function NewClientPlanPageClient({
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit() {
+    setError("");
     const trimmedName = name.trim();
     if (!trimmedName) {
       setError("Il nome è obbligatorio.");

@@ -16,6 +16,7 @@ import { v4 as uuidv4 } from "uuid";
 import type { Database } from "@/lib/supabase/types";
 import { savePlan } from "@/app/(trainer)/plans/actions";
 import { saveAsTemplate } from "@/app/(trainer)/plans/saveAsTemplate/actions";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 type ClientRow = Database["public"]["Tables"]["profiles"]["Row"];
@@ -113,6 +114,7 @@ export function PlanBuilder({
   const [isPending, startTransition] = useTransition();
   const [saveError, setSaveError] = useState<string | null>(null);
   const [templateSaved, setTemplateSaved] = useState(false);
+  const [templateError, setTemplateError] = useState("");
 
   const STEPS = isTemplate
     ? ["Info", "Giornate", "Esercizi", "Review"]
@@ -237,7 +239,10 @@ export function PlanBuilder({
       const result = await saveAsTemplate(plan.id!);
       if (result.success) {
         setTemplateSaved(true);
+        setTemplateError("");
         setTimeout(() => setTemplateSaved(false), 3000);
+      } else {
+        setTemplateError(result.error ?? "Errore nel salvataggio.");
       }
     });
   }
@@ -657,8 +662,11 @@ export function PlanBuilder({
         {templateSaved && (
           <p className="text-sm text-[var(--color-success)] text-center">
             ✓ Template salvato —{" "}
-            <a href="/templates" className="underline">Vedi template</a>
+            <Link href="/templates" className="underline">Vedi template</Link>
           </p>
+        )}
+        {templateError && (
+          <p className="text-sm text-[var(--color-error)] text-center">{templateError}</p>
         )}
       </div>
     );
