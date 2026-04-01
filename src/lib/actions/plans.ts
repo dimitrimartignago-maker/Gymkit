@@ -42,13 +42,16 @@ export async function clonePlan(
     if (sourceErr || !source) return { success: false, error: "Piano non trovato." };
     const typedSource = source as unknown as SourcePlan;
 
+    // Ownership check
+    if (typedSource.trainer_id !== user.id) return { success: false, error: "Non autorizzato." };
+
     // 2. Crea nuovo workout_plan
     const isTemplate = options.clientId === undefined || options.clientId === null;
     const { data: newPlan, error: planErr } = await admin
       .from("workout_plans")
       .insert({
         gym_id: typedSource.gym_id,
-        trainer_id: typedSource.trainer_id,
+        trainer_id: user.id,
         client_id: options.clientId ?? null,
         name: options.name ?? typedSource.name,
         description: typedSource.description,
@@ -82,7 +85,10 @@ export async function clonePlan(
         .select("id")
         .single();
 
-      if (dayErr || !newDay) return { success: false, error: "Errore clonazione giornata." };
+      if (dayErr || !newDay) {
+        await admin.from("workout_plans").delete().eq("id", newPlan.id);
+        return { success: false, error: "Errore clonazione giornata." };
+      }
 
       type SourceEx = typeof day.plan_exercises[number];
       const sortedExercises = [...(day.plan_exercises ?? [])].sort(
@@ -103,7 +109,10 @@ export async function clonePlan(
             superset_group: ex.superset_group,
           }))
         );
-        if (exErr) return { success: false, error: "Errore clonazione esercizi." };
+        if (exErr) {
+          await admin.from("workout_plans").delete().eq("id", newPlan.id);
+          return { success: false, error: "Errore clonazione esercizi." };
+        }
       }
     }
 
