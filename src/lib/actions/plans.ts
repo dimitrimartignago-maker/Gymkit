@@ -19,12 +19,12 @@ export async function clonePlan(
     name?: string;             // se omesso, usa nome originale
   } = {}
 ): Promise<{ success: true; planId: string } | { success: false; error: string }> {
+  const admin = createAdminClient();
+  let createdPlanId: string | null = null;
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { success: false, error: "Non autenticato." };
-
-    const admin = createAdminClient();
 
     // 1. Leggi piano originale con tutte le relazioni
     const { data: source, error: sourceErr } = await admin
@@ -65,6 +65,7 @@ export async function clonePlan(
       .single();
 
     if (planErr || !newPlan) return { success: false, error: "Errore nella clonazione." };
+    createdPlanId = newPlan.id;
 
     // 3. Clona plan_days + plan_exercises
     type SourceDay = typeof typedSource.plan_days[number];
@@ -86,7 +87,8 @@ export async function clonePlan(
         .single();
 
       if (dayErr || !newDay) {
-        await admin.from("workout_plans").delete().eq("id", newPlan.id);
+        const { error: cleanupErr } = await admin.from("workout_plans").delete().eq("id", newPlan.id);
+        if (cleanupErr) console.error("clonePlan cleanup failed:", newPlan.id, cleanupErr.message);
         return { success: false, error: "Errore clonazione giornata." };
       }
 
@@ -110,7 +112,8 @@ export async function clonePlan(
           }))
         );
         if (exErr) {
-          await admin.from("workout_plans").delete().eq("id", newPlan.id);
+          const { error: cleanupErr } = await admin.from("workout_plans").delete().eq("id", newPlan.id);
+          if (cleanupErr) console.error("clonePlan cleanup failed:", newPlan.id, cleanupErr.message);
           return { success: false, error: "Errore clonazione esercizi." };
         }
       }
@@ -118,6 +121,9 @@ export async function clonePlan(
 
     return { success: true, planId: newPlan.id };
   } catch (e) {
+    if (createdPlanId) {
+      await admin.from("workout_plans").delete().eq("id", createdPlanId);
+    }
     return { success: false, error: e instanceof Error ? e.message : "Errore imprevisto." };
   }
 }
