@@ -70,6 +70,7 @@ export interface Database {
           role: Role;
           invited_by: string | null;
           is_active: boolean;
+          goals: string | null;
           created_at: string;
         };
         Insert: {
@@ -83,6 +84,7 @@ export interface Database {
           role: Role;
           invited_by?: string | null;
           is_active?: boolean;
+          goals?: string | null;
           created_at?: string;
         };
         Update: {
@@ -95,6 +97,7 @@ export interface Database {
           role?: Role;
           invited_by?: string | null;
           is_active?: boolean;
+          goals?: string | null;
         };
         Relationships: [];
       };
