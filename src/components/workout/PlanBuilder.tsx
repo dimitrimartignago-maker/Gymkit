@@ -15,6 +15,7 @@ import { useState, useTransition } from "react";
 import { v4 as uuidv4 } from "uuid";
 import type { Database } from "@/lib/supabase/types";
 import { savePlan } from "@/app/(trainer)/plans/actions";
+import { saveAsTemplate } from "@/app/(trainer)/plans/saveAsTemplate/actions";
 import { useRouter } from "next/navigation";
 
 type ClientRow = Database["public"]["Tables"]["profiles"]["Row"];
@@ -111,6 +112,7 @@ export function PlanBuilder({
   const [step, setStep] = useState(0);
   const [isPending, startTransition] = useTransition();
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [templateSaved, setTemplateSaved] = useState(false);
 
   const STEPS = isTemplate
     ? ["Info", "Giornate", "Esercizi", "Review"]
@@ -226,6 +228,19 @@ export function PlanBuilder({
       days[dayIdx] = { ...days[dayIdx], exercises: exs };
       return { ...p, days };
     });
+
+  // ---- Save as template ----
+
+  async function handleSaveAsTemplate() {
+    if (!plan.id) return;
+    startTransition(async () => {
+      const result = await saveAsTemplate(plan.id!);
+      if (result.success) {
+        setTemplateSaved(true);
+        setTimeout(() => setTemplateSaved(false), 3000);
+      }
+    });
+  }
 
   // ---- Save ----
 
@@ -628,6 +643,23 @@ export function PlanBuilder({
             Pubblica
           </Button>
         </div>
+
+        {!isTemplate && plan.id && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleSaveAsTemplate}
+            disabled={isPending}
+          >
+            Salva come template
+          </Button>
+        )}
+        {templateSaved && (
+          <p className="text-sm text-[var(--color-success)] text-center">
+            ✓ Template salvato —{" "}
+            <a href="/templates" className="underline">Vedi template</a>
+          </p>
+        )}
       </div>
     );
   };
