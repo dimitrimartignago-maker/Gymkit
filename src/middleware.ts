@@ -11,11 +11,14 @@ const ROUTE_ROLE_MAP: Record<string, Role> = {
   "/courses": "admin",
   "/settings": "admin",
   "/account": "admin",
+  "/members": "admin",
   "/clients": "trainer",
   "/plans": "trainer",
   "/exercises": "trainer",
   "/schedule": "trainer",
+  "/templates": "trainer",
   "/workout": "client",
+  "/log": "client",
   "/booking": "client",
   "/profile": "client",
 };
@@ -67,7 +70,12 @@ export async function middleware(request: NextRequest) {
   }
 
   if (user) {
-    const { data: profile } = await supabase
+    const adminClient = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { cookies: { getAll: () => [], setAll: () => {} } }
+    );
+    const { data: profile } = await adminClient
       .from("profiles")
       .select("role")
       .eq("id", user.id)
