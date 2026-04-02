@@ -11,6 +11,7 @@ import {
   inviteClient,
   inviteTrainer,
   toggleTrainerStatus,
+  toggleCanManageCourses,
 } from "./actions";
 
 type Trainer = {
@@ -19,6 +20,7 @@ type Trainer = {
   last_name: string;
   email: string;
   is_active: boolean;
+  can_manage_courses: boolean;
   created_at: string;
 };
 
@@ -150,6 +152,19 @@ export function TrainersClient({ trainers: initial, invitations: initialInvites 
     });
   }
 
+  function handleToggleCanManage(trainerId: string, value: boolean) {
+    startTransition(async () => {
+      const result = await toggleCanManageCourses(trainerId, value);
+      if (result.success) {
+        setTrainers((prev) =>
+          prev.map((t) =>
+            t.id === trainerId ? { ...t, can_manage_courses: value } : t
+          )
+        );
+      }
+    });
+  }
+
   return (
     <div className="p-4 md:p-6 flex flex-col gap-8">
       {/* Header */}
@@ -201,6 +216,9 @@ export function TrainersClient({ trainers: initial, invitations: initialInvites 
                   <th className="text-center px-4 py-3 text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wide">
                     Stato
                   </th>
+                  <th className="text-center px-4 py-3 text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wide">
+                    Corsi
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -240,6 +258,20 @@ export function TrainersClient({ trainers: initial, invitations: initialInvites 
                           <ToggleRight size={22} className="text-[var(--color-accent)]" />
                         ) : (
                           <ToggleLeft size={22} className="text-[var(--color-text-secondary)]" />
+                        )}
+                      </button>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <button
+                        onClick={() => handleToggleCanManage(t.id, !t.can_manage_courses)}
+                        disabled={isPending}
+                        title={t.can_manage_courses ? "Revoca gestione corsi" : "Concedi gestione corsi"}
+                        className="text-[var(--color-text-secondary)] hover:text-[var(--color-accent)] transition-colors disabled:opacity-50"
+                      >
+                        {t.can_manage_courses ? (
+                          <ToggleRight size={20} className="text-[var(--color-accent)]" />
+                        ) : (
+                          <ToggleLeft size={20} />
                         )}
                       </button>
                     </td>

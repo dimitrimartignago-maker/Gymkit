@@ -11,7 +11,7 @@ export default async function AdminTrainersPage() {
   const [trainersRes, invitesRes] = await Promise.all([
     supabase
       .from("profiles")
-      .select("id, first_name, last_name, email, is_active, created_at")
+      .select("id, first_name, last_name, email, is_active, can_manage_courses, created_at")
       .eq("gym_id", profile.gym_id)
       .eq("role", "trainer")
       .order("first_name"),
@@ -26,7 +26,7 @@ export default async function AdminTrainersPage() {
 
   const trainers = (trainersRes.data ?? []) as Pick<
     ProfileRow,
-    "id" | "first_name" | "last_name" | "email" | "is_active" | "created_at"
+    "id" | "first_name" | "last_name" | "email" | "is_active" | "can_manage_courses" | "created_at"
   >[];
 
   const invitations = (invitesRes.data ?? []) as Pick<

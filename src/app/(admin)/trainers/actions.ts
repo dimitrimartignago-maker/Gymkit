@@ -116,3 +116,23 @@ export async function toggleTrainerStatus(
     return { success: false, error: "Errore imprevisto." };
   }
 }
+
+export async function toggleCanManageCourses(
+  trainerId: string,
+  value: boolean
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { supabase, profile } = await getAdmin();
+    const { error } = await supabase
+      .from("profiles")
+      .update({ can_manage_courses: value })
+      .eq("id", trainerId)
+      .eq("gym_id", profile.gym_id)
+      .eq("role", "trainer");
+    if (error) return { success: false, error: "Errore nell'aggiornamento." };
+    revalidatePath("/trainers");
+    return { success: true };
+  } catch {
+    return { success: false, error: "Errore imprevisto." };
+  }
+}
