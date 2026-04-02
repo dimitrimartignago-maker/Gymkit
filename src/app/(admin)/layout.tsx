@@ -8,6 +8,7 @@ const adminNavItems = [
   { href: "/trainers", label: "Trainer" },
   { href: "/members", label: "Clienti" },
   { href: "/courses", label: "Corsi" },
+  { href: "/calendar", label: "Calendario" },
   { href: "/settings", label: "Impostazioni" },
   { href: "/account", label: "Profilo" },
 ];

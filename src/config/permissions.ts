@@ -11,7 +11,7 @@ export const roleHomeRoutes: Record<Role, string> = {
 };
 
 export const protectedRoutesByRole: Record<Role, string[]> = {
-  admin: ["/dashboard", "/trainers", "/courses", "/settings"],
+  admin: ["/dashboard", "/trainers", "/courses", "/calendar", "/settings"],
   trainer: ["/clients", "/plans", "/exercises", "/schedule"],
   client: ["/workout", "/booking", "/profile"],
 };
