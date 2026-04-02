@@ -35,6 +35,7 @@ CREATE TABLE profiles (
   phone TEXT,
   avatar_url TEXT,
   role TEXT NOT NULL CHECK (role IN ('admin', 'trainer', 'client')),
+  goals TEXT,                        -- obiettivi del cliente (testo libero, editabile dal trainer)
   invited_by UUID REFERENCES profiles(id),
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT now()
@@ -104,10 +105,11 @@ CREATE TABLE exercises (
 );
 
 -- Piano di allenamento (la "scheda")
+-- client_id = NULL → il piano è un template (non assegnato a nessun cliente)
 CREATE TABLE workout_plans (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   gym_id UUID NOT NULL REFERENCES gym(id),
-  client_id UUID NOT NULL REFERENCES profiles(id),
+  client_id UUID REFERENCES profiles(id),            -- NULL = template
   trainer_id UUID NOT NULL REFERENCES profiles(id),
   name TEXT NOT NULL,                -- es. "Scheda Massa - Fase 1"
   description TEXT,
@@ -117,6 +119,7 @@ CREATE TABLE workout_plans (
   starts_at DATE,
   expires_at DATE,
   previous_version_id UUID REFERENCES workout_plans(id),
+  source_template_id UUID REFERENCES workout_plans(id),  -- template da cui è stata clonata
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
@@ -240,6 +243,7 @@ CREATE INDEX idx_exercises_gym ON exercises(gym_id) WHERE is_active;
 CREATE INDEX idx_exercises_muscle ON exercises(gym_id, muscle_group);
 CREATE INDEX idx_workout_plans_client ON workout_plans(client_id, status);
 CREATE INDEX idx_workout_plans_trainer ON workout_plans(trainer_id);
+CREATE INDEX idx_workout_plans_templates ON workout_plans(trainer_id) WHERE client_id IS NULL;
 CREATE INDEX idx_workout_logs_client ON workout_logs(client_id);
 CREATE INDEX idx_workout_logs_plan_day ON workout_logs(plan_day_id);
 CREATE INDEX idx_class_slots_date ON class_slots(starts_at) WHERE NOT is_cancelled;
@@ -447,7 +451,7 @@ Icone grandi (24px), label sotto, area tap minima 48x48px.
 
 **Top Bar (trainer/admin):**
 Sidebar collassabile su desktop, bottom nav su mobile.
-Sezioni: Clienti | Schede | Corsi | Esercizi | Impostazioni
+Sezioni trainer: Clienti | Template | Corsi | Esercizi | Impostazioni
 
 **Card Esercizio (nella scheda):**
 ```
@@ -488,12 +492,32 @@ Tap "Inizia Allenamento" → Logging set by set →
 Completa → Rating + note opzionali → Salva log
 ```
 
-**Trainer: Crea scheda**
+**Trainer: Crea scheda (da zero)**
 ```
-Seleziona cliente → Nuova scheda (nome, durata) →
+Clienti → Seleziona cliente → "Nuova Scheda" → "Crea da zero" →
 Aggiungi giornate → Per ogni giornata: cerca esercizio da libreria →
 Configura (serie, reps, carico, note) → Riordina drag&drop →
 Pubblica → Cliente la vede
+```
+
+**Trainer: Crea scheda (da template)**
+```
+Clienti → Seleziona cliente → "Nuova Scheda" → "Parti da template" →
+Seleziona template dal dropdown → Rinomina se vuoi → "Crea scheda" →
+Editor con giornate ed esercizi pre-popolati → Personalizza → Pubblica
+```
+
+**Trainer: Crea template**
+```
+Nav → Template → "Nuovo template" → Nome + descrizione →
+Editor (identico all'editor scheda, senza selezione cliente) →
+Aggiungi giornate ed esercizi → Salva → Riutilizzabile su tutti i clienti
+```
+
+**Trainer: Salva scheda come template**
+```
+Apri scheda esistente in edit → Tab "Review" →
+"Salva come template" → Feedback conferma → Template disponibile in /templates
 ```
 
 **Cliente: Prenota corso**
@@ -560,9 +584,17 @@ Service worker per cache della scheda attiva → consultabile offline.
     /(trainer)
       /layout.tsx                     ← sidebar/nav trainer + ThemeToggle
       /clients/page.tsx
-      /clients/[id]/page.tsx
-      /plans/new/page.tsx             ← crea scheda
-      /plans/[id]/edit/page.tsx
+      /clients/[id]/page.tsx          ← dettaglio cliente con GoalsEditor + lista schede
+      /clients/[id]/GoalsEditor.tsx   ← client component edit obiettivi inline
+      /clients/[id]/goals/actions.ts  ← updateClientGoals (verifica trainer_clients)
+      /clients/[id]/plans/new/page.tsx          ← crea scheda: scratch o da template
+      /clients/[id]/plans/new/NewClientPlanPage.tsx
+      /clients/[id]/plans/new/actions.ts        ← createPlanForClient
+      /templates/page.tsx             ← lista template (workout_plans con client_id NULL)
+      /templates/new/page.tsx         ← crea template (nome + descrizione, redirect all'editor)
+      /templates/[id]/edit/page.tsx   ← editor template (PlanBuilder con isTemplate=true)
+      /plans/[id]/edit/page.tsx       ← editor scheda assegnata
+      /plans/saveAsTemplate/actions.ts← saveAsTemplate (wrapper su clonePlan)
       /exercises/page.tsx             ← libreria
       /schedule/page.tsx              ← gestione slot corsi
     /(admin)
@@ -586,13 +618,14 @@ Service worker per cache della scheda attiva → consultabile offline.
   /lib
     /actions
       /auth.ts                        ← signOut() condiviso tra ruoli
+      /plans.ts                       ← clonePlan() deep-copy piano+giorni+esercizi (con ownership check)
     /supabase
       /client.ts
       /server.ts
       /admin.ts                       ← createAdminClient() con service role key (solo server)
       /get-admin-context.ts           ← auth check + profilo + restituisce admin client
-      /get-trainer-context.ts         ← auth check + profilo + restituisce client autenticato
-      /get-client-context.ts          ← auth check + profilo + restituisce client autenticato
+      /get-trainer-context.ts         ← auth check + profilo + restituisce admin client
+      /get-client-context.ts          ← auth check + profilo + restituisce admin client
       /types.ts                       ← tipi generati da Supabase
     /hooks
       /use-theme.ts                   ← dark/light toggle, localStorage
@@ -615,7 +648,7 @@ Service worker per cache della scheda attiva → consultabile offline.
 | 1 | Template one-shot, non SaaS | Modello di vendita scelto |
 | 2 | PWA, no nativo | Singolo codebase, deploy istantaneo, Capacitor come escape hatch |
 | 3 | Supabase Auth + RLS con JWT claims | Auth gestita, sicurezza a livello DB senza ricorsione; role e gym_id in app_metadata |
-| 11 | Tutti i context (admin/trainer/client) usano service role key | Le policy JWT claims coprono solo `profiles`. Le altre tabelle (`trainer_clients`, `workout_plans`, ecc.) non hanno policy RLS configurate — il service role bypassa RLS e le query filtrano già per ruolo/id a livello applicativo (server-only) |
+| 11 | Tutti i context (admin/trainer/client) usano service role key | Le policy JWT claims coprono solo `profiles`. Le altre tabelle (`trainer_clients`, `workout_plans`, ecc.) non hanno policy RLS configurate — il service role bypassa RLS e le query filtrano già per ruolo/id a livello applicativo (server-only). Sicurezza applicativa: ownership check nelle server actions (es. `eq("trainer_id", profile.id)`) |
 | 12 | Middleware usa createServerClient (non createAdminClient) | Edge Runtime non supporta @supabase/supabase-js; @supabase/ssr è Edge-compatible |
 | 4 | Libreria esercizi pre-caricata (~150-200) a livello palestra | Riduce tempo di setup, evita conflitti su riassegnazione clienti, trainer aggiunge i suoi (is_default=false) |
 | 5 | Onboarding ibrido QR/link | Bassa frizione, trainer mantiene controllo |
@@ -624,3 +657,4 @@ Service worker per cache della scheda attiva → consultabile offline.
 | 8 | Cliente logga da solo | Trainer non appesantito, cliente responsabilizzato |
 | 9 | Scheda con versioning | Storico preservato, progressione tracciabile |
 | 10 | reps come TEXT | Supporta "8-12", "AMRAP", "30sec", non solo numeri |
+| 13 | Template = workout_plan con client_id NULL | Riusa l'intera struttura esistente senza tabelle aggiuntive. `clonePlan()` gestisce la deep-copy per "crea da template" e "salva come template". `PlanBuilder` riutilizzato con prop `isTemplate=true` che nasconde la selezione cliente |
