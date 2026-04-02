@@ -120,7 +120,7 @@ export default async function SchedulePage({ searchParams }: Props) {
       .map((c) => c.id)
   );
 
-  const canManage = (profile as { can_manage_courses: boolean }).can_manage_courses ?? false;
+  const canManage = profile.can_manage_courses ?? false;
 
   // Filter slots to only own ones when trainer cannot manage all
   const visibleSlots = canManage

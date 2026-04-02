@@ -106,10 +106,8 @@ export function ScheduleClient({
   trainerId,
   canManage,
   ownSlotIds,
-  ownCourseIds,
 }: Props) {
   const ownSlotSet = new Set(ownSlotIds);
-  const ownCourseSet = new Set(ownCourseIds);
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [modal, setModal] = useState<ModalState | null>(null);
