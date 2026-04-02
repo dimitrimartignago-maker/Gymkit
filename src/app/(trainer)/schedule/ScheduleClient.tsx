@@ -94,7 +94,6 @@ interface Props {
   trainerId: string;
   canManage: boolean;
   ownSlotIds: string[];
-  ownCourseIds: string[];
 }
 
 export function ScheduleClient({

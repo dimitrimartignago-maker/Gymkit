@@ -114,12 +114,6 @@ export default async function SchedulePage({ searchParams }: Props) {
       .map((s) => s.id)
   );
 
-  const ownCourseIds = new Set(
-    courses
-      .filter((c) => (c as { trainer_id: string | null }).trainer_id === profile.id)
-      .map((c) => c.id)
-  );
-
   const canManage = profile.can_manage_courses ?? false;
 
   // Filter slots to only own ones when trainer cannot manage all
@@ -137,7 +131,6 @@ export default async function SchedulePage({ searchParams }: Props) {
       trainerId={profile.id}
       canManage={canManage}
       ownSlotIds={Array.from(ownSlotIds)}
-      ownCourseIds={Array.from(ownCourseIds)}
     />
   );
 }

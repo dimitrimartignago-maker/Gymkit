@@ -1,6 +1,6 @@
 "use client";
 
-import { SlotAttendees } from "@/components/booking/SlotAttendees";
+import { AdminSlotAttendees } from "@/components/booking/AdminSlotAttendees";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import type { Database } from "@/lib/supabase/types";
@@ -684,7 +684,7 @@ export function CalendarClient({
             {/* Attendee list */}
             <div className="flex flex-col gap-2 pt-2 border-t border-[var(--color-border)]">
               <p className="text-sm font-medium text-[var(--color-text)]">Partecipanti</p>
-              <SlotAttendees slotId={modal.slot.id} />
+              <AdminSlotAttendees slotId={modal.slot.id} />
             </div>
 
             {/* Cancel slot */}
