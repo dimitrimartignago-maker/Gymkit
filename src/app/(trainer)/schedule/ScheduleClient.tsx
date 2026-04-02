@@ -1,5 +1,6 @@
 "use client";
 
+import { SlotAttendees } from "@/components/booking/SlotAttendees";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import type { Database } from "@/lib/supabase/types";
@@ -91,6 +92,9 @@ interface Props {
   schedules: ScheduleRow[];
   trainers: TrainerProfile[];
   trainerId: string;
+  canManage: boolean;
+  ownSlotIds: string[];
+  ownCourseIds: string[];
 }
 
 export function ScheduleClient({
@@ -100,7 +104,12 @@ export function ScheduleClient({
   schedules,
   trainers,
   trainerId,
+  canManage,
+  ownSlotIds,
+  ownCourseIds,
 }: Props) {
+  const ownSlotSet = new Set(ownSlotIds);
+  const ownCourseSet = new Set(ownCourseIds);
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [modal, setModal] = useState<ModalState | null>(null);
@@ -273,30 +282,36 @@ export function ScheduleClient({
 
           {/* Actions */}
           <div className="flex gap-2">
-            <Button
-              variant="secondary"
-              size="sm"
-              loading={isPending}
-              onClick={handleGenerate}
-            >
-              <RefreshCw size={14} />
-              Genera Slot
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => { setError(""); setModal({ type: "newSchedule" }); }}
-            >
-              <Calendar size={14} />
-              Ricorrenza
-            </Button>
-            <Button
-              size="sm"
-              onClick={() => { setError(""); patchSlot({ date: weekStart }); setModal({ type: "newSlot" }); }}
-            >
-              <CalendarPlus size={14} />
-              Slot
-            </Button>
+            {canManage && (
+              <Button
+                variant="secondary"
+                size="sm"
+                loading={isPending}
+                onClick={handleGenerate}
+              >
+                <RefreshCw size={14} />
+                Genera Slot
+              </Button>
+            )}
+            {canManage && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => { setError(""); setModal({ type: "newSchedule" }); }}
+              >
+                <Calendar size={14} />
+                Ricorrenza
+              </Button>
+            )}
+            {canManage && (
+              <Button
+                size="sm"
+                onClick={() => { setError(""); patchSlot({ date: weekStart }); setModal({ type: "newSlot" }); }}
+              >
+                <CalendarPlus size={14} />
+                Slot
+              </Button>
+            )}
           </div>
         </div>
 
@@ -316,8 +331,11 @@ export function ScheduleClient({
               <div key={date.toISOString()} className="w-44 flex flex-col gap-2">
                 {/* Day header */}
                 <div
-                  className="flex items-center justify-between pb-1 border-b border-[var(--color-border)] cursor-pointer group"
-                  onClick={() => openSlotForDate(date)}
+                  className={[
+                    "flex items-center justify-between pb-1 border-b border-[var(--color-border)]",
+                    canManage ? "cursor-pointer group" : "",
+                  ].join(" ")}
+                  onClick={canManage ? () => openSlotForDate(date) : undefined}
                 >
                   <div className="flex flex-col">
                     <span className="text-xs font-medium text-[var(--color-text-secondary)]">
@@ -334,14 +352,16 @@ export function ScheduleClient({
                       {date.getDate()}
                     </span>
                   </div>
-                  <span className="text-xs text-[var(--color-text-secondary)] opacity-0 group-hover:opacity-100 transition-opacity">
-                    + slot
-                  </span>
+                  {canManage && (
+                    <span className="text-xs text-[var(--color-text-secondary)] opacity-0 group-hover:opacity-100 transition-opacity">
+                      + slot
+                    </span>
+                  )}
                 </div>
 
                 {/* Slot cards */}
                 <div className="flex flex-col gap-2">
-                  {daySlots.length === 0 && (
+                  {daySlots.length === 0 && canManage && (
                     <button
                       onClick={() => openSlotForDate(date)}
                       className="h-10 rounded-[var(--radius-sm)] border border-dashed border-[var(--color-border)] flex items-center justify-center text-[var(--color-text-secondary)] hover:border-[var(--color-accent)]/40 hover:text-[var(--color-accent)] transition-colors"
@@ -680,8 +700,14 @@ export function ScheduleClient({
               </div>
             </div>
 
+            {/* Attendee list */}
+            <div className="flex flex-col gap-2 pt-2 border-t border-[var(--color-border)]">
+              <p className="text-sm font-medium text-[var(--color-text)]">Partecipanti</p>
+              <SlotAttendees slotId={modal.slot.id} />
+            </div>
+
             {/* Cancel slot */}
-            {!modal.slot.is_cancelled && (
+            {!modal.slot.is_cancelled && canManage && ownSlotSet.has(modal.slot.id) && (
               <div className="flex flex-col gap-3 pt-2 border-t border-[var(--color-border)]">
                 <p className="text-sm font-medium text-[var(--color-text)]">
                   Cancella slot

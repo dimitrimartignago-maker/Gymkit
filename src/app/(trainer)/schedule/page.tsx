@@ -15,7 +15,7 @@ type SlotRaw = {
   max_capacity_override: number | null;
   is_cancelled: boolean;
   cancellation_reason: string | null;
-  courses: { id: string; name: string; color: string | null; max_capacity: number } | null;
+  courses: { id: string; name: string; color: string | null; max_capacity: number; trainer_id: string | null } | null;
   bookings: { id: string; status: string }[];
 };
 
@@ -45,7 +45,7 @@ export default async function SchedulePage({ searchParams }: Props) {
   const [slotsRes, coursesRes, schedulesRes, trainersRes] = await Promise.all([
     supabase
       .from("class_slots")
-      .select(`id, course_id, trainer_id, starts_at, ends_at, max_capacity_override, is_cancelled, cancellation_reason, courses(id, name, color, max_capacity), bookings(id, status)`)
+      .select(`id, course_id, trainer_id, starts_at, ends_at, max_capacity_override, is_cancelled, cancellation_reason, courses(id, name, color, max_capacity, trainer_id), bookings(id, status)`)
       .gte("starts_at", weekStart + "T00:00:00")
       .lt("starts_at", weekEnd + "T00:00:00")
       .order("starts_at"),
@@ -102,14 +102,42 @@ export default async function SchedulePage({ searchParams }: Props) {
     };
   });
 
+  // Compute own slot IDs and own course IDs
+  const ownSlotIds = new Set(
+    slots
+      .filter(
+        (s) =>
+          s.trainer_id === profile.id ||
+          (s.trainer_id === null &&
+            (rawSlots.find((r) => r.id === s.id)?.courses?.trainer_id ?? null) === profile.id)
+      )
+      .map((s) => s.id)
+  );
+
+  const ownCourseIds = new Set(
+    courses
+      .filter((c) => (c as { trainer_id: string | null }).trainer_id === profile.id)
+      .map((c) => c.id)
+  );
+
+  const canManage = (profile as { can_manage_courses: boolean }).can_manage_courses ?? false;
+
+  // Filter slots to only own ones when trainer cannot manage all
+  const visibleSlots = canManage
+    ? slots
+    : slots.filter((s) => ownSlotIds.has(s.id));
+
   return (
     <ScheduleClient
       weekStart={weekStart}
-      slots={slots}
+      slots={visibleSlots}
       courses={courses}
       schedules={gymSchedules}
       trainers={trainers}
       trainerId={profile.id}
+      canManage={canManage}
+      ownSlotIds={Array.from(ownSlotIds)}
+      ownCourseIds={Array.from(ownCourseIds)}
     />
   );
 }
