@@ -70,6 +70,7 @@ export interface Database {
           role: Role;
           invited_by: string | null;
           is_active: boolean;
+          can_manage_courses: boolean;
           goals: string | null;
           created_at: string;
         };
@@ -84,6 +85,7 @@ export interface Database {
           role: Role;
           invited_by?: string | null;
           is_active?: boolean;
+          can_manage_courses?: boolean;
           goals?: string | null;
           created_at?: string;
         };
@@ -97,6 +99,7 @@ export interface Database {
           role?: Role;
           invited_by?: string | null;
           is_active?: boolean;
+          can_manage_courses?: boolean;
           goals?: string | null;
         };
         Relationships: [];

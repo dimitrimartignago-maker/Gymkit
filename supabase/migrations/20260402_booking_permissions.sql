@@ -1,0 +1,2 @@
+ALTER TABLE profiles
+  ADD COLUMN IF NOT EXISTS can_manage_courses BOOLEAN NOT NULL DEFAULT false;

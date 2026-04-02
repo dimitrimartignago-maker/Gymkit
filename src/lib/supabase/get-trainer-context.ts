@@ -13,7 +13,7 @@ export async function getTrainerContext() {
   const admin = createAdminClient();
   const { data: profile } = await admin
     .from("profiles")
-    .select("id, gym_id, role, first_name, last_name")
+    .select("id, gym_id, role, first_name, last_name, can_manage_courses")
     .eq("id", user.id)
     .single();
 
