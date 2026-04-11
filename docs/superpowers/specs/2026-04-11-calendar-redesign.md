@@ -42,8 +42,14 @@ create table class_slot_trainers (
 );
 ```
 
-### Tabella `class_slots` — invariata
+### Tabella `class_slots` — un campo aggiunto
 Il campo `trainer_id` esistente viene deprecato: la nuova UI non lo scrive più e non lo legge. Rimane nel DB per non rompere query esistenti. I trainer si leggono esclusivamente da `class_slot_trainers`.
+
+Nuovo campo:
+```sql
+alter table class_slots add column recurrence_id uuid null;
+```
+Tutti gli slot creati insieme in una ricorrenza condividono lo stesso `recurrence_id` (generato lato server al momento della creazione). Slot singoli hanno `recurrence_id = NULL`.
 
 ### Tabella `course_schedules`
 Non viene eliminata fisicamente (ci sono bookings/riferimenti storici), ma la nuova UI non la usa più. Il bottone "Genera settimana" viene rimosso.
@@ -90,11 +96,15 @@ Non viene eliminata fisicamente (ci sono bookings/riferimenti storici), ma la nu
 - Ripeti ON → genera tutti i `class_slots` per le occorrenze (data_inizio → data_fine, nei giorni selezionati), saltando silenziosamente i duplicati (stesso `course_id` + `starts_at`); per ogni slot inserisce le righe in `class_slot_trainers`
 - Tutti gli inserimenti avvengono in un'unica Server Action
 
-### 4. Dettaglio slot (modal esistente — modifiche minori)
+### 4. Dettaglio slot
 
 - Mostra trainer come lista (non singolo)
-- Modifica: aggiunge/rimuove trainer dalla junction table
-- Cancellazione: invariata
+- **Se `recurrence_id` è NULL** (slot singolo): modifica e cancellazione si applicano solo a quello slot
+- **Se `recurrence_id` non è NULL** (slot ricorrente): al click su "Modifica" o "Cancella" appare una scelta:
+  - `Solo questo slot` — modifica/cancella solo l'occorrenza selezionata
+  - `Tutti gli slot della serie` — modifica/cancella tutti gli slot con lo stesso `recurrence_id`
+- "Tutti gli slot della serie" per la **modifica** aggiorna: `start_time`, `end_time`, `trainer_ids` su tutti gli slot della serie
+- "Tutti gli slot della serie" per la **cancellazione** annulla tutti gli slot futuri della serie (con `starts_at > now()`); gli slot passati non vengono toccati
 
 ---
 
@@ -121,9 +131,17 @@ interface CreateSlotsInput {
 - Salta duplicati (stesso `course_id` + `starts_at`) senza errore
 - Ritorna `{ success: true, created: N, skipped: M }` dove `created` = slot nuovi inseriti, `skipped` = duplicati ignorati
 
-### `updateSlot` — aggiornamento firma
+### `updateSlot(slotId, data, scope: "single" | "series")`
 
-Aggiunge `trainer_ids: string[]` ai dati modificabili; sostituisce le righe in `class_slot_trainers` (delete + insert).
+- `scope = "single"`: aggiorna solo lo slot specificato
+- `scope = "series"`: aggiorna tutti gli slot con lo stesso `recurrence_id` dello slot specificato (errore se `recurrence_id` è NULL)
+- Dati modificabili: `start_time`, `end_time`, `trainer_ids: string[]`
+- Per i trainer: sostituisce le righe in `class_slot_trainers` (delete + insert) per lo/gli slot coinvolti
+
+### `cancelSlot(slotId, reason, scope: "single" | "series")`
+
+- `scope = "single"`: cancella solo lo slot specificato (comportamento attuale)
+- `scope = "series"`: cancella tutti gli slot futuri (`starts_at > now()`) con lo stesso `recurrence_id`
 
 ---
 
@@ -140,7 +158,7 @@ Aggiunge `trainer_ids: string[]` ai dati modificabili; sostituisce le righe in `
 ## Fuori scope
 
 - Vista mensile
-- Modifica "tutta la serie" (gli slot ricorrenti sono indipendenti)
+- Modifica della data di singoli slot nella serie (solo orario e trainer sono modificabili in bulk)
 - Notifiche ai clienti quando uno slot viene cancellato
 - Import/export calendario
 
@@ -150,7 +168,7 @@ Aggiunge `trainer_ids: string[]` ai dati modificabili; sostituisce le righe in `
 
 | File | Cambiamento |
 |---|---|
-| `supabase/migrations/` | Nuova migrazione: tabella `class_slot_trainers` |
+| `supabase/migrations/` | Nuova migrazione: tabella `class_slot_trainers` + colonna `recurrence_id` su `class_slots` |
 | `src/app/(admin)/calendar/page.tsx` | Legge `view` + `date` dai searchParams; query aggiornata |
 | `src/app/(admin)/calendar/CalendarClient.tsx` | Redesign completo: rimuove schedules, aggiunge day view, nuova modal |
 | `src/app/(admin)/calendar/actions.ts` | Nuova `createSlots`, aggiornamento `updateSlot` |
