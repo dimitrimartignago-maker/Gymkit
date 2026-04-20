@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/Input";
 import { NumericInput } from "@/components/ui/Input";
 import type { Database } from "@/lib/supabase/types";
 import { Check } from "lucide-react";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { updateGymSettings } from "./actions";
 
 type GymRow = Database["public"]["Tables"]["gym"]["Row"];
@@ -21,16 +22,23 @@ interface Props {
 }
 
 export function SettingsClient({ gym }: Props) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
 
   const [name, setName] = useState(gym.name);
   const [slug, setSlug] = useState(gym.slug);
-  const [primaryColor, setPrimaryColor] = useState(gym.primary_color ?? "#1A1A2E");
-  const [customColor, setCustomColor] = useState(gym.primary_color ?? "#1A1A2E");
   const [accentColor, setAccentColor] = useState(gym.accent_color ?? "#E94560");
-  const [customAccentColor, setCustomAccentColor] = useState(gym.accent_color ?? "#E94560");
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  // Live preview: aggiorna la CSS var istantaneamente senza aspettare il salvataggio
+  useEffect(() => {
+    if (!mounted) return;
+    document.documentElement.style.setProperty("--gym-accent", accentColor);
+  }, [accentColor, mounted]);
   const [cancellationHours, setCancellationHours] = useState(
     gym.booking_cancellation_hours ?? 24
   );
@@ -47,7 +55,6 @@ export function SettingsClient({ gym }: Props) {
       const result = await updateGymSettings(gym.id, {
         name,
         slug,
-        primary_color: primaryColor,
         accent_color: accentColor,
         booking_cancellation_hours: cancellationHours,
       });
@@ -57,6 +64,7 @@ export function SettingsClient({ gym }: Props) {
       } else {
         setSaved(true);
         setTimeout(() => setSaved(false), 3000);
+        router.refresh();
       }
     });
   }
@@ -94,48 +102,6 @@ export function SettingsClient({ gym }: Props) {
         />
       </section>
 
-      {/* Colore principale */}
-      <section className="flex flex-col gap-4">
-        <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide border-b border-[var(--color-border)] pb-2">
-          Colore principale
-        </h2>
-
-        <div className="flex flex-col gap-3">
-          <div className="flex gap-2 flex-wrap">
-            {PRESET_COLORS.map((c) => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => { setPrimaryColor(c); setCustomColor(c); }}
-                className={[
-                  "w-9 h-9 rounded-full transition-all",
-                  primaryColor === c
-                    ? "ring-2 ring-white ring-offset-2 ring-offset-[var(--color-surface)] scale-110"
-                    : "hover:scale-105",
-                ].join(" ")}
-                style={{ backgroundColor: c }}
-              />
-            ))}
-          </div>
-
-          <div className="flex items-center gap-3">
-            <input
-              type="color"
-              value={customColor}
-              onChange={(e) => { setCustomColor(e.target.value); setPrimaryColor(e.target.value); }}
-              className="w-10 h-10 rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-transparent cursor-pointer p-0.5"
-            />
-            <span className="text-sm text-[var(--color-text-secondary)] font-mono">
-              {primaryColor.toUpperCase()}
-            </span>
-            <div
-              className="flex-1 h-10 rounded-[var(--radius-md)]"
-              style={{ backgroundColor: primaryColor }}
-            />
-          </div>
-        </div>
-      </section>
-
       {/* Colore accent */}
       <section className="flex flex-col gap-4">
         <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide border-b border-[var(--color-border)] pb-2">
@@ -148,12 +114,12 @@ export function SettingsClient({ gym }: Props) {
               <button
                 key={c}
                 type="button"
-                onClick={() => { setAccentColor(c); setCustomAccentColor(c); }}
+                onClick={() => setAccentColor(c)}
                 className={[
                   "w-9 h-9 rounded-full transition-all",
-                  accentColor === c
-                    ? "ring-2 ring-white ring-offset-2 ring-offset-[var(--color-surface)] scale-110"
-                    : "hover:scale-105",
+                  accentColor.toLowerCase() === c.toLowerCase()
+                    ? "ring-2 ring-white ring-offset-2 ring-offset-[var(--color-bg)] scale-110"
+                    : "",
                 ].join(" ")}
                 style={{ backgroundColor: c }}
               />
@@ -163,8 +129,8 @@ export function SettingsClient({ gym }: Props) {
           <div className="flex items-center gap-3">
             <input
               type="color"
-              value={customAccentColor}
-              onChange={(e) => { setCustomAccentColor(e.target.value); setAccentColor(e.target.value); }}
+              value={accentColor}
+              onChange={(e) => setAccentColor(e.target.value)}
               className="w-10 h-10 rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-transparent cursor-pointer p-0.5"
             />
             <span className="text-sm text-[var(--color-text-secondary)] font-mono">

@@ -7,7 +7,6 @@ import { revalidatePath } from "next/cache";
 interface GymSettingsData {
   name: string;
   slug: string;
-  primary_color: string;
   accent_color: string;
   booking_cancellation_hours: number;
 }
@@ -39,8 +38,7 @@ export async function updateGymSettings(
       .update({
         name: data.name.trim(),
         slug: data.slug.trim().toLowerCase().replace(/\s+/g, "-"),
-        primary_color: data.primary_color,
-        accent_color: data.accent_color,
+        accent_color: data.accent_color.toLowerCase(),
         booking_cancellation_hours: data.booking_cancellation_hours,
       })
       .eq("id", gymId);
@@ -49,7 +47,7 @@ export async function updateGymSettings(
       console.error("[updateGymSettings] Supabase error:", error);
       return { success: false, error: error.message ?? "Errore nel salvataggio." };
     }
-    revalidatePath("/settings");
+    revalidatePath("/", "layout");
     return { success: true };
   } catch {
     return { success: false, error: "Errore imprevisto." };
