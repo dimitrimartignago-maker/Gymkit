@@ -230,7 +230,7 @@ export function CalendarClient({
     if (!modal?.slot) return;
     setError("");
     startTransition(async () => {
-      const result = await cancelSlot(modal.slot!.id, cancelReason);
+      const result = await cancelSlot(modal.slot!.id, cancelReason, "single");
       if (!result.success) {
         setError(result.error ?? "Errore.");
       } else {
