@@ -2,21 +2,20 @@ import { getAdminContext } from "@/lib/supabase/get-admin-context";
 import type { Database } from "@/lib/supabase/types";
 import { CalendarClient, type SlotWithDetails } from "./CalendarClient";
 
-type CourseRow    = Database["public"]["Tables"]["courses"]["Row"];
-type ScheduleRow  = Database["public"]["Tables"]["course_schedules"]["Row"];
-type ProfileRow   = Database["public"]["Tables"]["profiles"]["Row"];
+type CourseRow = Database["public"]["Tables"]["courses"]["Row"];
 
 type SlotRaw = {
   id: string;
   course_id: string;
-  trainer_id: string | null;
   starts_at: string;
   ends_at: string;
   max_capacity_override: number | null;
   is_cancelled: boolean;
   cancellation_reason: string | null;
+  recurrence_id: string | null;
   courses: { id: string; name: string; color: string | null; max_capacity: number } | null;
   bookings: { id: string; status: string }[];
+  class_slot_trainers: { trainer_id: string }[];
 };
 
 function getWeekStart(dateStr?: string): string {
@@ -25,29 +24,51 @@ function getWeekStart(dateStr?: string): string {
   const diff = day === 0 ? -6 : 1 - day;
   d.setDate(d.getDate() + diff);
   d.setHours(0, 0, 0, 0);
-  return d.toISOString().split("T")[0];
+  return [
+    d.getFullYear(),
+    String(d.getMonth() + 1).padStart(2, "0"),
+    String(d.getDate()).padStart(2, "0"),
+  ].join("-");
 }
 
 interface Props {
-  searchParams: { week?: string };
+  searchParams: { week?: string; view?: string; date?: string };
 }
 
 export default async function AdminCalendarPage({ searchParams }: Props) {
+  const view = searchParams.view === "day" ? "day" : "week";
   const weekStart = getWeekStart(searchParams.week);
-  const weekEnd = (() => {
+  const viewDate = view === "day"
+    ? (searchParams.date ?? new Date().toISOString().split("T")[0])
+    : weekStart;
+
+  // Date range for query
+  const rangeStart = (view === "day" ? viewDate : weekStart) + "T00:00:00";
+  const rangeEndDate = (() => {
+    if (view === "day") {
+      const d = new Date(viewDate + "T00:00:00");
+      d.setDate(d.getDate() + 1);
+      return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, "0"), String(d.getDate()).padStart(2, "0")].join("-");
+    }
     const d = new Date(weekStart + "T00:00:00");
     d.setDate(d.getDate() + 7);
-    return d.toISOString().split("T")[0];
+    return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, "0"), String(d.getDate()).padStart(2, "0")].join("-");
   })();
 
   const { supabase, profile } = await getAdminContext();
 
-  const [slotsRes, coursesRes, schedulesRes, trainersRes] = await Promise.all([
+  const [slotsRes, coursesRes, trainersRes] = await Promise.all([
     supabase
       .from("class_slots")
-      .select(`id, course_id, trainer_id, starts_at, ends_at, max_capacity_override, is_cancelled, cancellation_reason, courses(id, name, color, max_capacity), bookings(id, status)`)
-      .gte("starts_at", weekStart + "T00:00:00")
-      .lt("starts_at", weekEnd + "T00:00:00")
+      .select(`
+        id, course_id, starts_at, ends_at, max_capacity_override,
+        is_cancelled, cancellation_reason, recurrence_id,
+        courses(id, name, color, max_capacity),
+        bookings(id, status),
+        class_slot_trainers(trainer_id)
+      `)
+      .gte("starts_at", rangeStart)
+      .lt("starts_at", rangeEndDate + "T00:00:00")
       .order("starts_at"),
     supabase
       .from("courses")
@@ -55,10 +76,6 @@ export default async function AdminCalendarPage({ searchParams }: Props) {
       .eq("gym_id", profile.gym_id)
       .eq("is_active", true)
       .order("name"),
-    supabase
-      .from("course_schedules")
-      .select("*")
-      .eq("is_active", true),
     supabase
       .from("profiles")
       .select("id, first_name, last_name")
@@ -69,11 +86,8 @@ export default async function AdminCalendarPage({ searchParams }: Props) {
 
   const rawSlots = (slotsRes.data ?? []) as unknown as SlotRaw[];
   const courses  = (coursesRes.data ?? []) as CourseRow[];
-  const schedules = (schedulesRes.data ?? []) as ScheduleRow[];
-  const trainers  = (trainersRes.data ?? []) as Pick<ProfileRow, "id" | "first_name" | "last_name">[];
+  const trainers = (trainersRes.data ?? []) as { id: string; first_name: string; last_name: string }[];
 
-  const gymCourseIds = new Set(courses.map((c) => c.id));
-  const gymSchedules = schedules.filter((s) => gymCourseIds.has(s.course_id));
   const trainerMap = Object.fromEntries(
     trainers.map((t) => [t.id, `${t.first_name} ${t.last_name}`])
   );
@@ -82,10 +96,15 @@ export default async function AdminCalendarPage({ searchParams }: Props) {
     const confirmedCount = s.bookings.filter((b) => b.status === "confirmed").length;
     const waitlistCount  = s.bookings.filter((b) => b.status === "waitlist").length;
     const capacity = s.max_capacity_override ?? s.courses?.max_capacity ?? 0;
+    const trainerIds = s.class_slot_trainers.map((t) => t.trainer_id);
+    const trainerNames = trainerIds
+      .map((id) => trainerMap[id])
+      .filter(Boolean) as string[];
     return {
       id: s.id,
       course_id: s.course_id,
-      trainer_id: s.trainer_id,
+      recurrence_id: s.recurrence_id,
+      trainer_ids: trainerIds,
       starts_at: s.starts_at,
       ends_at: s.ends_at,
       is_cancelled: s.is_cancelled,
@@ -95,18 +114,18 @@ export default async function AdminCalendarPage({ searchParams }: Props) {
       waitlist_count: waitlistCount,
       course_name: s.courses?.name ?? "Corso",
       course_color: s.courses?.color ?? "#3b82f6",
-      trainer_name: s.trainer_id ? (trainerMap[s.trainer_id] ?? null) : null,
+      trainer_names: trainerNames,
     };
   });
 
   return (
     <CalendarClient
       weekStart={weekStart}
+      view={view}
+      viewDate={viewDate}
       slots={slots}
       courses={courses}
-      schedules={gymSchedules}
       trainers={trainers}
-      trainerId={profile.id}
     />
   );
 }
