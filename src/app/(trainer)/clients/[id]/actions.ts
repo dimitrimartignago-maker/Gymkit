@@ -1,6 +1,7 @@
 "use server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 
 export interface WorkoutSetLog {
   set_number: number;
@@ -57,7 +58,22 @@ type RawLog = {
 export async function getClientWorkoutHistory(
   clientId: string
 ): Promise<WorkoutLogSummary[]> {
+  const authClient = await createClient();
+  const { data: { user } } = await authClient.auth.getUser();
+  if (!user) return [];
+
   const supabase = createAdminClient();
+
+  // Verify caller is the trainer for this client
+  const { data: relation } = await supabase
+    .from("trainer_clients")
+    .select("client_id")
+    .eq("trainer_id", user.id)
+    .eq("client_id", clientId)
+    .eq("is_active", true)
+    .single();
+
+  if (!relation) return [];
 
   const { data, error } = await supabase
     .from("workout_logs")
@@ -77,7 +93,10 @@ export async function getClientWorkoutHistory(
     .order("started_at", { ascending: false })
     .limit(20);
 
-  if (error || !data) return [];
+  if (error || !data) {
+    if (error) console.error("[getClientWorkoutHistory]", error.message);
+    return [];
+  }
 
   return (data as unknown as RawLog[]).map((log) => {
     const exerciseMap = new Map<number, WorkoutExerciseLog>();
