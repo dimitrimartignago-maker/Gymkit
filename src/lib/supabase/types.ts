@@ -461,6 +461,7 @@ export interface Database {
           max_capacity_override: number | null;
           is_cancelled: boolean;
           cancellation_reason: string | null;
+          recurrence_id: string | null;
           created_at: string;
         };
         Insert: {
@@ -472,6 +473,7 @@ export interface Database {
           max_capacity_override?: number | null;
           is_cancelled?: boolean;
           cancellation_reason?: string | null;
+          recurrence_id?: string | null;
           created_at?: string;
         };
         Update: {
@@ -482,6 +484,22 @@ export interface Database {
           max_capacity_override?: number | null;
           is_cancelled?: boolean;
           cancellation_reason?: string | null;
+          recurrence_id?: string | null;
+        };
+        Relationships: [];
+      };
+      class_slot_trainers: {
+        Row: {
+          slot_id: string;
+          trainer_id: string;
+        };
+        Insert: {
+          slot_id: string;
+          trainer_id: string;
+        };
+        Update: {
+          slot_id?: string;
+          trainer_id?: string;
         };
         Relationships: [];
       };
