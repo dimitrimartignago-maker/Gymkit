@@ -9,8 +9,11 @@ interface Props {
 }
 
 function formatDuration(started_at: string, completed_at: string): string {
-  const mins = Math.round(
-    (new Date(completed_at).getTime() - new Date(started_at).getTime()) / 60000
+  const mins = Math.max(
+    0,
+    Math.round(
+      (new Date(completed_at).getTime() - new Date(started_at).getTime()) / 60000
+    )
   );
   return `${mins} min`;
 }
@@ -30,7 +33,7 @@ function avgOrDash(values: (number | null)[]): string {
 }
 
 function Stars({ rating }: { rating: number | null }) {
-  if (!rating) return null;
+  if (rating === null || rating === undefined) return null;
   return (
     <span className="flex items-center gap-0.5">
       {Array.from({ length: 5 }, (_, i) => (
@@ -55,6 +58,7 @@ function ExerciseAccordion({ ex }: { ex: WorkoutExerciseLog }) {
       {/* Collapsed header */}
       <button
         onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
         className="w-full flex items-center justify-between gap-3 px-3 py-2.5 bg-[var(--color-surface-raised)] hover:bg-[var(--color-surface)] transition-colors text-left"
       >
         <div className="flex flex-col gap-0.5 min-w-0">
@@ -135,6 +139,7 @@ function LogRow({ log }: { log: WorkoutLogSummary }) {
       {/* List row */}
       <button
         onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
         className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-[var(--color-surface-raised)] hover:bg-[var(--color-surface)] transition-colors text-left"
       >
         <div className="flex flex-col gap-1 min-w-0">
