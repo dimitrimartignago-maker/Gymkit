@@ -53,7 +53,7 @@ export default async function ClientDetailPage({ params, searchParams }: Props) 
       : Promise.resolve({ data: [] }),
     tab === "storico"
       ? getClientWorkoutHistory(params.id)
-      : Promise.resolve([]),
+      : Promise.resolve([] as WorkoutLogSummary[]),
   ]);
 
   const plans = (plansData.data ?? []) as Database["public"]["Tables"]["workout_plans"]["Row"][];
@@ -174,7 +174,7 @@ export default async function ClientDetailPage({ params, searchParams }: Props) 
 
       {/* Tab: Storico */}
       {tab === "storico" && (
-        <WorkoutHistory logs={historyData as WorkoutLogSummary[]} />
+        <WorkoutHistory logs={historyData} />
       )}
     </div>
   );
