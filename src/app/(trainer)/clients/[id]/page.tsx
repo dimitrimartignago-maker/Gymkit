@@ -7,15 +7,20 @@ import { ArrowLeft, Plus } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { GoalsEditor } from "./GoalsEditor";
+import { WorkoutHistory } from "./WorkoutHistory";
+import { getClientWorkoutHistory } from "./actions";
+import type { WorkoutLogSummary } from "./actions";
 
 type PlanStatus = Database["public"]["Tables"]["workout_plans"]["Row"]["status"];
 
 interface Props {
   params: { id: string };
+  searchParams: { tab?: string };
 }
 
-export default async function ClientDetailPage({ params }: Props) {
+export default async function ClientDetailPage({ params, searchParams }: Props) {
   const { supabase, profile } = await getTrainerContext();
+  const tab = searchParams.tab === "storico" ? "storico" : "profilo";
 
   const { data: relation } = await supabase
     .from("trainer_clients")
@@ -27,25 +32,31 @@ export default async function ClientDetailPage({ params }: Props) {
 
   if (!relation) notFound();
 
-  const [clientRes, plansRes] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select("id, first_name, last_name, email, phone, avatar_url, goals, created_at")
-      .eq("id", params.id)
-      .single(),
-    supabase
-      .from("workout_plans")
-      .select("id, name, status, version, starts_at, expires_at, updated_at")
-      .eq("client_id", params.id)
-      .eq("trainer_id", profile.id)
-      .order("updated_at", { ascending: false }),
-  ]);
+  const clientRes = await supabase
+    .from("profiles")
+    .select("id, first_name, last_name, email, phone, avatar_url, goals, created_at")
+    .eq("id", params.id)
+    .single();
 
   if (!clientRes.data) notFound();
-
   const client = clientRes.data;
-  const plans = plansRes.data ?? [];
 
+  // Load tab-specific data
+  const [plansData, historyData] = await Promise.all([
+    tab === "profilo"
+      ? supabase
+          .from("workout_plans")
+          .select("id, name, status, version, starts_at, expires_at, updated_at")
+          .eq("client_id", params.id)
+          .eq("trainer_id", profile.id)
+          .order("updated_at", { ascending: false })
+      : Promise.resolve({ data: [] }),
+    tab === "storico"
+      ? getClientWorkoutHistory(params.id)
+      : Promise.resolve([]),
+  ]);
+
+  const plans = (plansData.data ?? []) as Database["public"]["Tables"]["workout_plans"]["Row"][];
   const activePlans   = plans.filter((p) => p.status === "active");
   const draftPlans    = plans.filter((p) => p.status === "draft");
   const archivedPlans = plans.filter((p) => p.status === "archived");
@@ -69,6 +80,14 @@ export default async function ClientDetailPage({ params }: Props) {
       </Link>
     </div>
   );
+
+  const tabClass = (active: boolean) =>
+    [
+      "px-4 py-2 text-sm font-medium border-b-2 transition-colors",
+      active
+        ? "border-[var(--color-accent)] text-[var(--color-accent)]"
+        : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text)]",
+    ].join(" ");
 
   return (
     <div className="p-4 md:p-6 flex flex-col gap-6 max-w-2xl">
@@ -97,53 +116,65 @@ export default async function ClientDetailPage({ params }: Props) {
         </div>
       </Card>
 
-      {/* Obiettivi */}
-      <GoalsEditor
-        clientId={params.id}
-        initialGoals={client.goals ?? ""}
-      />
+      {/* Tab nav */}
+      <div className="flex border-b border-[var(--color-border)] -mb-3">
+        <Link href={`/clients/${params.id}`} className={tabClass(tab === "profilo")}>
+          Profilo
+        </Link>
+        <Link href={`/clients/${params.id}?tab=storico`} className={tabClass(tab === "storico")}>
+          Storico
+        </Link>
+      </div>
 
-      {/* CTA nuova scheda */}
-      <Link href={`/clients/${params.id}/plans/new`}>
-        <Button variant="primary" size="md" fullWidth>
-          <Plus size={16} /> Nuova Scheda
-        </Button>
-      </Link>
+      {/* Tab: Profilo */}
+      {tab === "profilo" && (
+        <>
+          <GoalsEditor clientId={params.id} initialGoals={client.goals ?? ""} />
 
-      {/* Schede attive */}
-      {activePlans.length > 0 && (
-        <section className="flex flex-col gap-3">
-          <h2 className="text-sm font-semibold text-[var(--color-text)]">
-            Schede attive ({activePlans.length})
-          </h2>
-          {activePlans.map((p) => <PlanCard key={p.id} plan={p} />)}
-        </section>
+          <Link href={`/clients/${params.id}/plans/new`}>
+            <Button variant="primary" size="md" fullWidth>
+              <Plus size={16} /> Nuova Scheda
+            </Button>
+          </Link>
+
+          {activePlans.length > 0 && (
+            <section className="flex flex-col gap-3">
+              <h2 className="text-sm font-semibold text-[var(--color-text)]">
+                Schede attive ({activePlans.length})
+              </h2>
+              {activePlans.map((p) => <PlanCard key={p.id} plan={p} />)}
+            </section>
+          )}
+
+          {draftPlans.length > 0 && (
+            <section className="flex flex-col gap-3">
+              <h2 className="text-sm font-semibold text-[var(--color-text)]">
+                Bozze ({draftPlans.length})
+              </h2>
+              {draftPlans.map((p) => <PlanCard key={p.id} plan={p} />)}
+            </section>
+          )}
+
+          {archivedPlans.length > 0 && (
+            <section className="flex flex-col gap-3">
+              <h2 className="text-sm font-semibold text-[var(--color-text-secondary)]">
+                Archivio ({archivedPlans.length})
+              </h2>
+              {archivedPlans.map((p) => <PlanCard key={p.id} plan={p} />)}
+            </section>
+          )}
+
+          {plans.length === 0 && (
+            <p className="text-sm text-[var(--color-text-secondary)] text-center py-6">
+              Nessuna scheda assegnata a questo cliente.
+            </p>
+          )}
+        </>
       )}
 
-      {/* Bozze */}
-      {draftPlans.length > 0 && (
-        <section className="flex flex-col gap-3">
-          <h2 className="text-sm font-semibold text-[var(--color-text)]">
-            Bozze ({draftPlans.length})
-          </h2>
-          {draftPlans.map((p) => <PlanCard key={p.id} plan={p} />)}
-        </section>
-      )}
-
-      {/* Archivio */}
-      {archivedPlans.length > 0 && (
-        <section className="flex flex-col gap-3">
-          <h2 className="text-sm font-semibold text-[var(--color-text-secondary)]">
-            Archivio ({archivedPlans.length})
-          </h2>
-          {archivedPlans.map((p) => <PlanCard key={p.id} plan={p} />)}
-        </section>
-      )}
-
-      {plans.length === 0 && (
-        <p className="text-sm text-[var(--color-text-secondary)] text-center py-6">
-          Nessuna scheda assegnata a questo cliente.
-        </p>
+      {/* Tab: Storico */}
+      {tab === "storico" && (
+        <WorkoutHistory logs={historyData as WorkoutLogSummary[]} />
       )}
     </div>
   );
