@@ -78,9 +78,14 @@ export async function middleware(request: NextRequest) {
     );
     const { data: profile } = await adminClient
       .from("profiles")
-      .select("role")
+      .select("role, is_active")
       .eq("id", user.id)
       .single();
+
+    if (profile && !profile.is_active) {
+      await supabase.auth.signOut();
+      return NextResponse.redirect(new URL("/login?error=account_disabled", request.url));
+    }
 
     const userRole = (profile?.role ?? "client") as Role;
 

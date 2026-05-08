@@ -48,3 +48,40 @@ export async function reassignClient(
     return { success: false, error: "Errore imprevisto." };
   }
 }
+
+export async function softDeleteUser(targetUserId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: "Non autenticato." };
+
+    const role = (user as { app_metadata?: { role?: string } }).app_metadata?.role
+      ?? (await supabase.from("profiles").select("role").eq("id", user.id).single()).data?.role;
+
+    if (role !== "admin") {
+      return { success: false, error: "Non autorizzato." };
+    }
+
+    if (user.id === targetUserId) {
+      return { success: false, error: "Non puoi cancellare il tuo stesso account." };
+    }
+
+    const admin = createAdminClient();
+    const { error } = await admin.rpc("admin_soft_delete_user", {
+      target_id: targetUserId,
+      admin_id: user.id,
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    revalidatePath("/members");
+    return { success: true };
+  } catch (error: unknown) {
+  const message = error instanceof Error ? error.message : "Errore imprevisto durante la cancellazione.";
+  return { success: false, error: message };
+}
+}

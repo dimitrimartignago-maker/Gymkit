@@ -4,11 +4,11 @@ import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
-import { Check, Copy, Mail, UserPlus, Users } from "lucide-react";
+import { Check, Copy, Mail, Trash2, UserPlus, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { inviteClient } from "../trainers/actions";
-import { reassignClient } from "./actions";
+import { reassignClient, softDeleteUser } from "./actions";
 
 type Client = {
   id: string;
@@ -58,6 +58,11 @@ export function MembersClient({ clients, trainers, trainerByClient: initial }: P
   const [reassigning, setReassigning] = useState<string | null>(null);
   const [reassignError, setReassignError] = useState("");
 
+  // Delete state
+  const [deleteModal, setDeleteModal] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState("");
+  const [showInactive, setShowInactive] = useState(false);
+
   function copyLink(link: string) {
     navigator.clipboard.writeText(link).then(() => {
       setCopied(true);
@@ -101,23 +106,45 @@ export function MembersClient({ clients, trainers, trainerByClient: initial }: P
     });
   }
 
+  function handleDelete() {
+    if (!deleteModal) return;
+    setDeleteError("");
+    startTransition(async () => {
+      const res = await softDeleteUser(deleteModal);
+      if (res.success) {
+        setDeleteModal(null);
+      } else {
+        setDeleteError(res.error || "Errore.");
+      }
+    });
+  }
+
   const trainerMap = Object.fromEntries(trainers.map((t) => [t.id, t]));
 
   return (
     <div className="p-4 md:p-6 flex flex-col gap-6">
       {/* Header */}
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div>
-          <h1 className="text-xl font-semibold text-[var(--color-text)]">Clienti</h1>
-          <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">
-            {clients.length} clienti registrati
-          </p>
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <h1 className="text-xl font-semibold text-[var(--color-text)]">Clienti</h1>
+            <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">
+              {clients.filter(c => showInactive || c.is_active).length} clienti {showInactive ? "(attivi + inattivi)" : "(attivi)"}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => setShowInactive(!showInactive)}
+            >
+              {showInactive ? "Nascondi inattivi" : "Mostra inattivi"}
+            </Button>
+            <Button size="sm" onClick={() => { setEmail(""); setInviteError(""); setModal("invite"); }}>
+              <UserPlus size={15} />
+              Invita Cliente
+            </Button>
+          </div>
         </div>
-        <Button size="sm" onClick={() => { setEmail(""); setInviteError(""); setModal("invite"); }}>
-          <UserPlus size={15} />
-          Invita Cliente
-        </Button>
-      </div>
 
       {reassignError && (
         <p className="text-sm text-[var(--color-error)]">{reassignError}</p>
@@ -132,14 +159,15 @@ export function MembersClient({ clients, trainers, trainerByClient: initial }: P
       ) : (
         <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] overflow-hidden">
           <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-[var(--color-border)] bg-[var(--color-surface-raised)]">
-                <th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wide">Nome</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wide hidden sm:table-cell">Email</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wide">Trainer</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wide hidden lg:table-cell">Iscritto</th>
-              </tr>
-            </thead>
+             <thead>
+               <tr className="border-b border-[var(--color-border)] bg-[var(--color-surface-raised)]">
+                 <th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wide">Nome</th>
+                 <th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wide hidden sm:table-cell">Email</th>
+                 <th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wide">Trainer</th>
+                 <th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wide hidden lg:table-cell">Iscritto</th>
+                 <th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wide hidden md:table-cell">Azioni</th>
+               </tr>
+             </thead>
             <tbody>
               {clients.map((c, i) => {
                 const currentTrainerId = trainerByClient[c.id];
@@ -208,13 +236,24 @@ export function MembersClient({ clients, trainers, trainerByClient: initial }: P
                         </button>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-[var(--color-text-secondary)] hidden lg:table-cell">
-                      {formatDate(c.created_at)}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
+                     <td className="px-4 py-3 text-[var(--color-text-secondary)] hidden lg:table-cell">
+                       {formatDate(c.created_at)}
+                     </td>
+                     <td className="px-4 py-3 hidden md:table-cell">
+                       {c.is_active && (
+                         <button
+                           onClick={() => setDeleteModal(c.id)}
+                           className="flex items-center justify-center w-8 h-8 rounded-full text-[var(--color-error)] hover:bg-[var(--color-error)]/10 transition-colors"
+                           title="Disattiva utente"
+                         >
+                           <Trash2 size={16} />
+                         </button>
+                       )}
+                     </td>
+                   </tr>
+                 );
+               })}
+             </tbody>
           </table>
         </div>
       )}
@@ -292,7 +331,26 @@ export function MembersClient({ clients, trainers, trainerByClient: initial }: P
           </div>
           <p className="text-xs text-[var(--color-text-secondary)]">Il link scade tra 7 giorni.</p>
         </div>
-      </Modal>
-    </div>
-  );
-}
+       </Modal>
+
+       {/* Modal: Conferma cancellazione */}
+       <Modal open={!!deleteModal} onClose={() => { setDeleteModal(null); setDeleteError(""); }} title="Conferma Cancellazione">
+         <div className="flex flex-col gap-5 pt-2">
+           <p className="text-sm text-[var(--color-text-secondary)]">
+             Sei sicuro di voler disattivare questo utente? Verrà rimosso dai suoi trainer
+             e le sue prenotazioni future saranno annullate. I dati storici verranno conservati.
+           </p>
+           {deleteError && <p className="text-sm text-[var(--color-error)]">{deleteError}</p>}
+           <div className="flex gap-3">
+             <Button variant="secondary" fullWidth onClick={() => { setDeleteModal(null); setDeleteError(""); }}>
+               Annulla
+             </Button>
+             <Button variant="danger" fullWidth loading={isPending} onClick={handleDelete}>
+               Disattiva Utente
+             </Button>
+           </div>
+         </div>
+       </Modal>
+     </div>
+   );
+ }
