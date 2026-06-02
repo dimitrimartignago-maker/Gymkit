@@ -72,9 +72,14 @@ export default async function SchedulePage({ searchParams }: Props) {
   const schedules = (schedulesRes.data ?? []) as ScheduleRow[];
   const trainers = (trainersRes.data ?? []) as Pick<ProfileRow, "id" | "first_name" | "last_name">[];
 
-  // Gym course ids set for filtering schedules
   const gymCourseIds = new Set(courses.map((c) => c.id));
-  const gymSchedules = schedules.filter((s) => gymCourseIds.has(s.course_id));
+  const gymSchedules = Array.from(
+    new Map(
+      schedules
+        .filter((s) => gymCourseIds.has(s.course_id))
+        .map((s) => [`${s.course_id}:${s.day_of_week}:${s.start_time}`, s])
+    ).values()
+  );
 
   // Map trainer id → name
   const trainerMap = Object.fromEntries(

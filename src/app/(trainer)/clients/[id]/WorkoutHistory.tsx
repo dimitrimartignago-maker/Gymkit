@@ -54,7 +54,7 @@ function ExerciseAccordion({ ex }: { ex: WorkoutExerciseLog }) {
   const avgRpe = avgOrDash(ex.sets.map((s) => s.rpe));
 
   return (
-    <div className="border border-[var(--color-border)] rounded-[var(--radius-md)] overflow-hidden">
+    <div className="border border-[var(--color-border)] rounded-[var(--radius-md)] overflow-hidden" onClick={(e) => e.stopPropagation()}>
       {/* Collapsed header */}
       <button
         onClick={() => setOpen((v) => !v)}
@@ -135,10 +135,13 @@ function LogRow({ log }: { log: WorkoutLogSummary }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="border border-[var(--color-border)] rounded-[var(--radius-md)] overflow-hidden">
+    <div
+      className="border border-[var(--color-border)] rounded-[var(--radius-md)] overflow-hidden cursor-pointer"
+      onClick={() => setOpen((v) => !v)}
+    >
       {/* List row */}
       <button
-        onClick={() => setOpen((v) => !v)}
+        onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}
         aria-expanded={open}
         className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-[var(--color-surface-raised)] hover:bg-[var(--color-surface)] transition-colors text-left"
       >
@@ -157,7 +160,7 @@ function LogRow({ log }: { log: WorkoutLogSummary }) {
               <>
                 <span>·</span>
                 <span className="truncate max-w-[200px] italic">
-                  "{log.overall_notes.slice(0, 60)}{log.overall_notes.length > 60 ? "…" : ""}"
+                  &ldquo;{log.overall_notes.slice(0, 60)}{log.overall_notes.length > 60 ? "…" : ""}&rdquo;
                 </span>
               </>
             )}
@@ -172,10 +175,10 @@ function LogRow({ log }: { log: WorkoutLogSummary }) {
 
       {/* Detail: exercise accordions */}
       {open && (
-        <div className="px-4 py-4 flex flex-col gap-3 bg-[var(--color-surface)]">
+        <div className="px-4 py-4 flex flex-col gap-3 bg-[var(--color-surface)]" onClick={(e) => e.stopPropagation()}>
           {log.overall_notes && (
             <p className="text-sm text-[var(--color-text-secondary)] italic border-l-2 border-[var(--color-accent)] pl-3">
-              "{log.overall_notes}"
+              &ldquo;{log.overall_notes}&rdquo;
             </p>
           )}
           {log.exercises.length === 0 ? (

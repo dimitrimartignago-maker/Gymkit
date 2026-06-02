@@ -37,6 +37,16 @@ async function WorkoutContent() {
 
   const plan = ((rawPlans ?? [])[0] ?? null) as unknown as PlanWithDays | null;
 
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const { data: todayLogs } = await supabase
+    .from("workout_logs")
+    .select("plan_day_id")
+    .eq("client_id", profile.id)
+    .gte("started_at", todayStart.toISOString())
+    .not("completed_at", "is", null);
+  const completedTodayIds = new Set((todayLogs ?? []).map((l) => l.plan_day_id));
+
   if (!plan) {
     return (
       <EmptyState
@@ -71,9 +81,16 @@ async function WorkoutContent() {
           return (
             <Card key={day.id} className="flex flex-col gap-4">
               <div className="flex items-center justify-between gap-2">
-                <h3 className="font-semibold text-[var(--color-text)]">
-                  {day.name}
-                </h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold text-[var(--color-text)]">
+                    {day.name}
+                  </h3>
+                  {completedTodayIds.has(day.id) && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--color-success)]/15 text-[var(--color-success)] text-xs font-medium">
+                      ✓ Completata oggi
+                    </span>
+                  )}
+                </div>
                 <span className="text-xs text-[var(--color-text-secondary)]">
                   {exercises.length} esercizi
                 </span>

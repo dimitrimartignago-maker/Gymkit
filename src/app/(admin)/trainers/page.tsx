@@ -24,6 +24,10 @@ export default async function AdminTrainersPage() {
       .order("created_at", { ascending: false }),
   ]);
 
+  if (trainersRes.error) {
+    console.error("[trainers/page] query error:", trainersRes.error);
+  }
+
   const trainers = (trainersRes.data ?? []) as Pick<
     ProfileRow,
     "id" | "first_name" | "last_name" | "email" | "is_active" | "can_manage_courses" | "created_at"

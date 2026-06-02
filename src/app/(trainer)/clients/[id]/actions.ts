@@ -103,21 +103,21 @@ export async function getClientWorkoutHistory(
 
     for (const s of log.workout_log_sets) {
       const pe = s.plan_exercises;
-      if (!pe) continue;
-      const order = pe.exercise_order;
+      const order = pe?.exercise_order ?? -(s.set_number);
+      const key = order >= 0 ? order : order;
 
-      if (!exerciseMap.has(order)) {
-        exerciseMap.set(order, {
-          exercise_name: pe.exercises?.name ?? "Esercizio",
-          exercise_order: order,
-          sets_prescribed: pe.sets,
-          reps_prescription: pe.reps ?? null,
-          load_prescription: pe.load_prescription,
+      if (!exerciseMap.has(key)) {
+        exerciseMap.set(key, {
+          exercise_name: pe?.exercises?.name ?? "Esercizio",
+          exercise_order: order >= 0 ? order : 999,
+          sets_prescribed: pe?.sets ?? 0,
+          reps_prescription: pe?.reps ?? null,
+          load_prescription: pe?.load_prescription ?? null,
           sets: [],
         });
       }
 
-      exerciseMap.get(order)!.sets.push({
+      exerciseMap.get(key)!.sets.push({
         set_number: s.set_number,
         reps_done: s.reps_done,
         load_used: s.load_used,

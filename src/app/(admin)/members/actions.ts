@@ -69,7 +69,8 @@ export async function softDeleteUser(targetUserId: string): Promise<{ success: b
     }
 
     const admin = createAdminClient();
-    const { error } = await admin.rpc("admin_soft_delete_user", {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (admin.rpc as any)("admin_soft_delete_user", {
       target_id: targetUserId,
       admin_id: user.id,
     });
@@ -84,4 +85,43 @@ export async function softDeleteUser(targetUserId: string): Promise<{ success: b
   const message = error instanceof Error ? error.message : "Errore imprevisto durante la cancellazione.";
   return { success: false, error: message };
 }
+}
+
+export async function reactivateUser(
+  targetUserId: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: "Non autenticato." };
+
+    const role =
+      (user as { app_metadata?: { role?: string } }).app_metadata?.role ??
+      (await supabase.from("profiles").select("role").eq("id", user.id).single()).data?.role;
+    if (role !== "admin") return { success: false, error: "Non autorizzato." };
+
+    const admin = createAdminClient();
+
+    const { data: adminProfile } = await admin
+      .from("profiles")
+      .select("gym_id")
+      .eq("id", user.id)
+      .single();
+
+    const { error } = await admin
+      .from("profiles")
+      .update({ is_active: true })
+      .eq("id", targetUserId)
+      .eq("gym_id", adminProfile!.gym_id)
+      .eq("role", "client");
+
+    if (error) return { success: false, error: error.message };
+
+    revalidatePath("/members");
+    return { success: true };
+  } catch {
+    return { success: false, error: "Errore imprevisto." };
+  }
 }

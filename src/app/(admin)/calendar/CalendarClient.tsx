@@ -6,7 +6,7 @@ import { Modal } from "@/components/ui/Modal";
 import type { Database } from "@/lib/supabase/types";
 import { ChevronLeft, ChevronRight, Edit2, Users, XCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { cancelSlot, createSlots, updateSlot } from "./actions";
 
 type CourseRow = Database["public"]["Tables"]["courses"]["Row"];
@@ -113,6 +113,15 @@ export function CalendarClient({ weekStart, view, viewDate, slots, courses, trai
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [modal, setModal] = useState<ModalState>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!gridRef.current) return;
+    const now = new Date();
+    const mins = now.getHours() * 60 + now.getMinutes();
+    const offset = ((mins - HOUR_START * 60) / 60) * HOUR_HEIGHT;
+    gridRef.current.scrollTop = Math.max(0, offset - 120);
+  }, []);
   const [toastMsg, setToastMsg] = useState("");
   const [error, setError] = useState("");
 
@@ -135,6 +144,8 @@ export function CalendarClient({ weekStart, view, viewDate, slots, courses, trai
     start_time: "09:00",
     end_time: "10:00",
     trainer_ids: [] as string[],
+    course_id: "",
+    date: "",
   });
 
   // ── Cancel state ───────────────────────────────────────────────────────────
@@ -191,12 +202,19 @@ export function CalendarClient({ weekStart, view, viewDate, slots, courses, trai
   }
   function navigateToday() {
     const today = todayStr();
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      router.push(`/calendar?view=day&date=${today}&week=${weekStartOf(today)}`);
+      return;
+    }
     if (view === "week") router.push(`/calendar?view=week&week=${weekStartOf(today)}`);
     else router.push(`/calendar?view=day&date=${today}&week=${weekStartOf(today)}`);
   }
   function switchView(v: "week" | "day") {
     if (v === "week") router.push(`/calendar?view=week&week=${weekStart}`);
-    else router.push(`/calendar?view=day&date=${viewDate}&week=${weekStart}`);
+    else {
+      const target = view === "week" ? todayStr() : viewDate;
+      router.push(`/calendar?view=day&date=${target}&week=${weekStartOf(target)}`);
+    }
   }
 
   // ── Handlers ───────────────────────────────────────────────────────────────
@@ -237,7 +255,7 @@ export function CalendarClient({ weekStart, view, viewDate, slots, courses, trai
   }
 
   function openEditMode(slot: SlotWithDetails) {
-    setEditForm({ start_time: extractTime(slot.starts_at), end_time: extractTime(slot.ends_at), trainer_ids: slot.trainer_ids });
+    setEditForm({ start_time: extractTime(slot.starts_at), end_time: extractTime(slot.ends_at), trainer_ids: slot.trainer_ids, course_id: slot.course_id, date: extractDate(slot.starts_at) });
     setEditScope("single");
     setEditMode(true);
     setError("");
@@ -323,7 +341,7 @@ export function CalendarClient({ weekStart, view, viewDate, slots, courses, trai
       </div>
 
       {/* Calendar grid */}
-      <div className="flex-1 overflow-auto">
+      <div ref={gridRef} className="flex-1 overflow-auto">
 
         {/* Day headers */}
         <div className="sticky top-0 z-10 flex bg-[var(--color-surface)] border-b border-[var(--color-border)]">
@@ -611,12 +629,22 @@ export function CalendarClient({ weekStart, view, viewDate, slots, courses, trai
                       ))}
                     </div>
                   )}
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-medium text-[var(--color-text)]">Corso</label>
+                    <select value={editForm.course_id} onChange={(e) => patchEdit({ course_id: e.target.value })} className={inputClass}>
+                      {courses.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                  </div>
+                  <div className="flex gap-3">
                     <div className="flex flex-col gap-1.5">
+                      <label className="text-sm font-medium text-[var(--color-text)]">Data</label>
+                      <input type="date" value={editForm.date} onChange={(e) => patchEdit({ date: e.target.value })} className={inputClass + " w-40"} />
+                    </div>
+                    <div className="flex-1 flex flex-col gap-1.5">
                       <label className="text-sm font-medium text-[var(--color-text)]">Inizio</label>
                       <input type="time" value={editForm.start_time} onChange={(e) => patchEdit({ start_time: e.target.value })} className={inputClass} />
                     </div>
-                    <div className="flex flex-col gap-1.5">
+                    <div className="flex-1 flex flex-col gap-1.5">
                       <label className="text-sm font-medium text-[var(--color-text)]">Fine</label>
                       <input type="time" value={editForm.end_time} onChange={(e) => patchEdit({ end_time: e.target.value })} className={inputClass} />
                     </div>

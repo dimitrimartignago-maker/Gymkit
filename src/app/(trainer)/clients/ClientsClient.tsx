@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
+import { EmptyState } from "@/components/ui/EmptyState";
 import type { Database } from "@/lib/supabase/types";
-import { Check, Copy, Link, Mail, Trash2, UserPlus } from "lucide-react";
+import { Check, Copy, Link, Mail, Trash2, UserPlus, Users } from "lucide-react";
 import NextLink from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -142,9 +143,13 @@ export function ClientsClient({ rows, planByClient, invitations: initialInvites 
       )}
 
       {rows.length === 0 && invitations.length === 0 && (
-        <p className="text-sm text-[var(--color-text-secondary)] italic">
-          Nessun cliente ancora. Usa il bottone &quot;Invita Cliente&quot; per iniziare.
-        </p>
+        <EmptyState
+          icon={Users}
+          title="Nessun cliente"
+          description="Inizia invitando il tuo primo cliente per gestire le sue schede e i suoi progressi."
+          ctaLabel="Invita Cliente"
+          onCta={() => { setEmail(""); setError(""); setModal("invite"); }}
+        />
       )}
 
       {/* Pending invitations */}

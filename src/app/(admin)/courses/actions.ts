@@ -98,3 +98,31 @@ export async function toggleCourseStatus(
     return { success: false, error: "Errore imprevisto." };
   }
 }
+
+export async function deleteCourse(
+  id: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { supabase, profile } = await getAdmin();
+    const { data: futureSlots } = await supabase
+      .from("class_slots")
+      .select("id")
+      .eq("course_id", id)
+      .gte("starts_at", new Date().toISOString())
+      .eq("is_cancelled", false)
+      .limit(1);
+    if (futureSlots && futureSlots.length > 0) {
+      return { success: false, error: "Ci sono slot futuri attivi. Cancellali prima di eliminare il corso." };
+    }
+    const { error } = await supabase
+      .from("courses")
+      .delete()
+      .eq("id", id)
+      .eq("gym_id", profile.gym_id);
+    if (error) return { success: false, error: "Errore nell'eliminazione." };
+    revalidatePath("/courses");
+    return { success: true };
+  } catch {
+    return { success: false, error: "Errore imprevisto." };
+  }
+}

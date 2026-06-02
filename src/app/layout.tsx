@@ -8,6 +8,9 @@ export const metadata: Metadata = {
   title: "GymKit",
   description: "App per la gestione della palestra",
   manifest: "/manifest.json",
+  icons: {
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export const viewport = {

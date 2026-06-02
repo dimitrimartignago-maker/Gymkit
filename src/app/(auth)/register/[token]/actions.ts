@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { roleHomeRoutes, type Role } from "@/config/permissions";
 import { redirect } from "next/navigation";
 
@@ -76,7 +77,8 @@ export async function registerWithToken(formData: FormData) {
   }
 
   // 3. Crea il profilo
-  const { error: profileError } = await supabase.from("profiles").insert({
+  const adminClient = createAdminClient();
+  const { error: profileError } = await adminClient.from("profiles").insert({
     id: authData.user.id,
     gym_id: invitation.gym_id,
     first_name: firstName,
@@ -89,7 +91,7 @@ export async function registerWithToken(formData: FormData) {
 
   if (profileError) {
     // Rollback: elimina l'utente auth appena creato
-    await supabase.auth.admin?.deleteUser(authData.user.id);
+    await adminClient.auth.admin.deleteUser(authData.user.id);
     return { error: `Errore nella creazione del profilo: ${profileError.message}` };
   }
 

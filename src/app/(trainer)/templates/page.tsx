@@ -3,6 +3,7 @@ import { getTrainerContext } from "@/lib/supabase/get-trainer-context";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Button } from "@/components/ui/Button";
 import { Plus, FileText } from "lucide-react";
+import { EmptyState } from "@/components/ui/EmptyState";
 import Link from "next/link";
 
 export default async function TemplatesPage() {
@@ -47,18 +48,13 @@ export default async function TemplatesPage() {
       </div>
 
       {list.length === 0 ? (
-        <div className="flex flex-col items-center gap-4 py-16 text-center">
-          <FileText size={40} className="text-[var(--color-text-secondary)] opacity-40" />
-          <div>
-            <p className="text-[var(--color-text)] font-medium">Nessun template ancora</p>
-            <p className="text-sm text-[var(--color-text-secondary)] mt-1">
-              Crea un template per riutilizzarlo su più clienti.
-            </p>
-          </div>
-          <Link href="/templates/new">
-            <Button variant="primary">Crea il primo template</Button>
-          </Link>
-        </div>
+        <EmptyState
+          icon={FileText}
+          title="Nessun template ancora"
+          description="Crea un template per riutilizzarlo su più clienti."
+          ctaLabel="Crea il primo template"
+          ctaHref="/templates/new"
+        />
       ) : (
         <div className="flex flex-col gap-3">
           {list.map((t) => (

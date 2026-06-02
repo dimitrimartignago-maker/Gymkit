@@ -136,7 +136,7 @@ async function verifySlotOwnership(
 
 export async function updateSlot(
   slotId: string,
-  data: { start_time: string; end_time: string; trainer_ids: string[] },
+  data: { start_time: string; end_time: string; trainer_ids: string[]; course_id?: string; date?: string },
   scope: "single" | "series"
 ): Promise<{ success: boolean; error?: string }> {
   try {
@@ -172,13 +172,16 @@ export async function updateSlot(
         .single();
       if (!slot) continue;
 
-      const date = slot.starts_at.substring(0, 10);
+      const slotDate = data.date ?? slot.starts_at.substring(0, 10);
+      const updatePayload: Record<string, string> = {
+        starts_at: `${slotDate}T${data.start_time}:00`,
+        ends_at: `${slotDate}T${data.end_time}:00`,
+      };
+      if (data.course_id) updatePayload.course_id = data.course_id;
+
       const { error: updateError } = await supabase
         .from("class_slots")
-        .update({
-          starts_at: `${date}T${data.start_time}:00`,
-          ends_at: `${date}T${data.end_time}:00`,
-        })
+        .update(updatePayload)
         .eq("id", id);
       if (updateError) return { success: false, error: "Errore nella modifica." };
 

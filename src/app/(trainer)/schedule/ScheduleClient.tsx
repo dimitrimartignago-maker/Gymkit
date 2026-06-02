@@ -325,7 +325,7 @@ export function ScheduleClient({
             const isToday = date.toDateString() === new Date().toDateString();
 
             return (
-              <div key={date.toISOString()} className="w-44 flex flex-col gap-2">
+              <div key={date.toISOString()} className="w-32 flex flex-col gap-2">
                 {/* Day header */}
                 <div
                   className={[

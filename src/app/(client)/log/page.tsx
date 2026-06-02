@@ -2,6 +2,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Card } from "@/components/ui/Card";
 import { getClientContext } from "@/lib/supabase/get-client-context";
 import { CheckSquare, Star } from "lucide-react";
+import Link from "next/link";
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("it-IT", {
@@ -65,35 +66,37 @@ export default async function LogPage() {
           {rows.map((log) => {
             const duration = formatDuration(log.started_at, log.completed_at);
             return (
-              <Card key={log.id} className="flex flex-col gap-2">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex flex-col gap-0.5">
-                    <span className="font-semibold text-sm text-[var(--color-text)]">
-                      {log.plan_days?.name ?? "Allenamento"}
-                    </span>
-                    <span className="text-xs text-[var(--color-text-secondary)]">
-                      {formatDate(log.started_at)}
-                      {duration && ` · ${duration}`}
-                    </span>
-                  </div>
-                  {log.overall_rating && (
-                    <div className="flex items-center gap-0.5 shrink-0">
-                      {Array.from({ length: log.overall_rating }).map((_, i) => (
-                        <Star
-                          key={i}
-                          size={12}
-                          className="text-[var(--color-accent)] fill-[var(--color-accent)]"
-                        />
-                      ))}
+              <Link key={log.id} href={`/log/${log.id}`} className="block hover:opacity-80 transition-opacity">
+                <Card className="flex flex-col gap-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="font-semibold text-sm text-[var(--color-text)]">
+                        {log.plan_days?.name ?? "Allenamento"}
+                      </span>
+                      <span className="text-xs text-[var(--color-text-secondary)]">
+                        {formatDate(log.started_at)}
+                        {duration && ` · ${duration}`}
+                      </span>
                     </div>
+                    {log.overall_rating && (
+                      <div className="flex items-center gap-0.5 shrink-0">
+                        {Array.from({ length: log.overall_rating }).map((_, i) => (
+                          <Star
+                            key={i}
+                            size={12}
+                            className="text-[var(--color-accent)] fill-[var(--color-accent)]"
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  {log.overall_notes && (
+                    <p className="text-xs text-[var(--color-text-secondary)] italic">
+                      {log.overall_notes}
+                    </p>
                   )}
-                </div>
-                {log.overall_notes && (
-                  <p className="text-xs text-[var(--color-text-secondary)] italic">
-                    {log.overall_notes}
-                  </p>
-                )}
-              </Card>
+                </Card>
+              </Link>
             );
           })}
         </div>

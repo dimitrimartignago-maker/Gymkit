@@ -7,7 +7,7 @@ import type { Database } from "@/lib/supabase/types";
 import { Edit2, Plus, ToggleLeft, ToggleRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { createCourse, toggleCourseStatus, updateCourse } from "./actions";
+import { createCourse, deleteCourse, toggleCourseStatus, updateCourse } from "./actions";
 
 type CourseRow = Database["public"]["Tables"]["courses"]["Row"];
 type TrainerProfile = { id: string; first_name: string; last_name: string };
@@ -51,11 +51,13 @@ export function CoursesClient({ courses: initial, trainers }: Props) {
   const [form, setForm] = useState<CourseForm>(DEFAULT_FORM);
   const [error, setError] = useState("");
   const [isPending, setIsPending] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
 
   function openCreate() {
     setEditing(null);
     setForm(DEFAULT_FORM);
     setError("");
+    setDeleteConfirm(false);
     setModalOpen(true);
   }
 
@@ -71,6 +73,7 @@ export function CoursesClient({ courses: initial, trainers }: Props) {
       is_active: course.is_active,
     });
     setError("");
+    setDeleteConfirm(false);
     setModalOpen(true);
   }
 
@@ -344,6 +347,51 @@ export function CoursesClient({ courses: initial, trainers }: Props) {
           <Button fullWidth loading={isPending} onClick={handleSubmit}>
             {editing ? "Salva Modifiche" : "Crea Corso"}
           </Button>
+
+          {editing && (
+            <div className="pt-3 border-t border-[var(--color-border)]">
+              {!deleteConfirm ? (
+                <button
+                  type="button"
+                  onClick={() => setDeleteConfirm(true)}
+                  className="text-xs text-[var(--color-error)] hover:underline"
+                >
+                  Elimina corso
+                </button>
+              ) : (
+                <div className="flex items-center gap-3 flex-wrap">
+                  <span className="text-xs text-[var(--color-error)]">Confermi eliminazione?</span>
+                  <button
+                    type="button"
+                    disabled={isPending}
+                    onClick={async () => {
+                      setIsPending(true);
+                      const res = await deleteCourse(editing.id);
+                      setIsPending(false);
+                      if (res.success) {
+                        setModalOpen(false);
+                        setDeleteConfirm(false);
+                        router.refresh();
+                      } else {
+                        setError(res.error ?? "Errore.");
+                        setDeleteConfirm(false);
+                      }
+                    }}
+                    className="text-xs font-semibold text-[var(--color-error)] hover:underline"
+                  >
+                    Sì, elimina
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDeleteConfirm(false)}
+                    className="text-xs text-[var(--color-text-secondary)] hover:underline"
+                  >
+                    Annulla
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </Modal>
     </div>

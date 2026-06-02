@@ -28,9 +28,10 @@ CREATE TABLE profiles (
   phone        TEXT,
   avatar_url   TEXT,
   role         TEXT NOT NULL CHECK (role IN ('admin', 'trainer', 'client')),
-  invited_by   UUID REFERENCES profiles(id),
-  is_active    BOOLEAN DEFAULT true,
-  created_at   TIMESTAMPTZ DEFAULT now()
+  invited_by          UUID REFERENCES profiles(id),
+  is_active           BOOLEAN DEFAULT true,
+  can_manage_courses  BOOLEAN DEFAULT false,
+  created_at          TIMESTAMPTZ DEFAULT now()
 );
 
 CREATE TABLE custom_roles (

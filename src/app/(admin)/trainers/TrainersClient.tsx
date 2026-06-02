@@ -67,6 +67,7 @@ export function TrainersClient({ trainers: initial, invitations: initialInvites 
   const [generatedRole, setGeneratedRole] = useState<"trainer" | "client">("trainer");
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
+  const [deleteInviteId, setDeleteInviteId] = useState<string | null>(null);
 
   // Form state
   const [trainerEmail, setTrainerEmail] = useState("");
@@ -332,14 +333,32 @@ export function TrainersClient({ trainers: initial, invitations: initialInvites 
                     <Link size={13} />
                     Copia
                   </button>
-                  <button
-                    onClick={() => handleDeleteInvite(inv.id)}
-                    disabled={isPending}
-                    className="p-1.5 rounded-[var(--radius-sm)] text-[var(--color-text-secondary)] hover:text-[var(--color-error)] hover:bg-[var(--color-error)]/10 transition-colors disabled:opacity-40"
-                    title="Elimina invito"
-                  >
-                    <Trash2 size={15} />
-                  </button>
+                  {deleteInviteId === inv.id ? (
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => { handleDeleteInvite(inv.id); setDeleteInviteId(null); }}
+                        disabled={isPending}
+                        className="px-2 py-1 rounded text-xs font-semibold text-[var(--color-error)] hover:bg-[var(--color-error)]/10 transition-colors"
+                      >
+                        Elimina
+                      </button>
+                      <button
+                        onClick={() => setDeleteInviteId(null)}
+                        className="px-2 py-1 rounded text-xs text-[var(--color-text-secondary)] hover:bg-[var(--color-overlay-md)] transition-colors"
+                      >
+                        Annulla
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setDeleteInviteId(inv.id)}
+                      disabled={isPending}
+                      className="p-1.5 rounded-[var(--radius-sm)] text-[var(--color-text-secondary)] hover:text-[var(--color-error)] hover:bg-[var(--color-error)]/10 transition-colors disabled:opacity-40"
+                      title="Elimina invito"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  )}
                 </div>
               </div>
             ))}

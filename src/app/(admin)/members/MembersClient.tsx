@@ -8,7 +8,7 @@ import { Check, Copy, Mail, Trash2, UserPlus, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { inviteClient } from "../trainers/actions";
-import { reassignClient, softDeleteUser } from "./actions";
+import { reassignClient, reactivateUser, softDeleteUser } from "./actions";
 
 type Client = {
   id: string;
@@ -119,6 +119,17 @@ export function MembersClient({ clients, trainers, trainerByClient: initial }: P
     });
   }
 
+  function handleReactivate(clientId: string) {
+    startTransition(async () => {
+      const res = await reactivateUser(clientId);
+      if (res.success) {
+        router.refresh();
+      } else {
+        setDeleteError(res.error || "Errore.");
+      }
+    });
+  }
+
   const trainerMap = Object.fromEntries(trainers.map((t) => [t.id, t]));
 
   return (
@@ -169,7 +180,7 @@ export function MembersClient({ clients, trainers, trainerByClient: initial }: P
                </tr>
              </thead>
             <tbody>
-              {clients.map((c, i) => {
+              {clients.filter((c) => showInactive || c.is_active).map((c, i, arr) => {
                 const currentTrainerId = trainerByClient[c.id];
                 const currentTrainer = currentTrainerId ? trainerMap[currentTrainerId] : null;
                 const isReassigning = reassigning === c.id;
@@ -179,16 +190,19 @@ export function MembersClient({ clients, trainers, trainerByClient: initial }: P
                     key={c.id}
                     className={[
                       "border-b border-[var(--color-border-soft)]",
-                      i === clients.length - 1 ? "border-b-0" : "",
+                      i === arr.length - 1 ? "border-b-0" : "",
                       !c.is_active ? "opacity-50" : "",
                     ].join(" ")}
                   >
-                    <td className="px-4 py-3">
+                    <td
+                      className="px-4 py-3 cursor-pointer"
+                      onClick={() => router.push(`/members/${c.id}`)}
+                    >
                       <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-full bg-[var(--color-accent)]/20 flex items-center justify-center text-[var(--color-accent)] text-xs font-semibold shrink-0">
                           {c.first_name?.[0]}{c.last_name?.[0]}
                         </div>
-                        <span className="font-medium text-[var(--color-text)]">
+                        <span className="font-medium text-[var(--color-text)] hover:text-[var(--color-accent)] transition-colors">
                           {c.first_name} {c.last_name}
                         </span>
                       </div>
@@ -240,13 +254,22 @@ export function MembersClient({ clients, trainers, trainerByClient: initial }: P
                        {formatDate(c.created_at)}
                      </td>
                      <td className="px-4 py-3 hidden md:table-cell">
-                       {c.is_active && (
+                       {c.is_active ? (
                          <button
                            onClick={() => setDeleteModal(c.id)}
                            className="flex items-center justify-center w-8 h-8 rounded-full text-[var(--color-error)] hover:bg-[var(--color-error)]/10 transition-colors"
                            title="Disattiva utente"
                          >
                            <Trash2 size={16} />
+                         </button>
+                       ) : (
+                         <button
+                           onClick={() => handleReactivate(c.id)}
+                           disabled={isPending}
+                           className="flex items-center gap-1.5 px-2 py-1 rounded-[var(--radius-sm)] text-xs font-medium text-[var(--color-success)] hover:bg-[var(--color-success)]/10 transition-colors disabled:opacity-40"
+                           title="Riattiva utente"
+                         >
+                           Riattiva
                          </button>
                        )}
                      </td>
@@ -334,7 +357,7 @@ export function MembersClient({ clients, trainers, trainerByClient: initial }: P
        </Modal>
 
        {/* Modal: Conferma cancellazione */}
-       <Modal open={!!deleteModal} onClose={() => { setDeleteModal(null); setDeleteError(""); }} title="Conferma Cancellazione">
+       <Modal open={!!deleteModal} onClose={() => { setDeleteModal(null); setDeleteError(""); }} title="Conferma Disattivazione">
          <div className="flex flex-col gap-5 pt-2">
            <p className="text-sm text-[var(--color-text-secondary)]">
              Sei sicuro di voler disattivare questo utente? Verrà rimosso dai suoi trainer

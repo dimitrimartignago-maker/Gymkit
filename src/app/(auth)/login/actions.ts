@@ -29,9 +29,14 @@ export async function signIn(
   const admin = createAdminClient();
   const { data: profile } = await admin
     .from("profiles")
-    .select("role")
+    .select("role, is_active")
     .eq("id", data.user.id)
     .single();
+
+  if (profile && profile.is_active === false) {
+    await supabase.auth.signOut();
+    return { error: "Questo account è stato disattivato. Contatta la palestra." };
+  }
 
   const role = (profile?.role ?? "client") as Role;
   const destination =

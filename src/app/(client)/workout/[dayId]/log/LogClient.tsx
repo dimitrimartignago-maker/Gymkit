@@ -6,7 +6,7 @@ import { saveWorkoutLog } from "../../actions";
 import { CheckCircle2, ChevronLeft, Star, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 
 export interface ExerciseData {
   planExerciseId: string;
@@ -81,6 +81,16 @@ export function LogClient({ planId, day, exercises }: Props) {
   const [overallRating, setOverallRating] = useState(0);
   const [overallNotes, setOverallNotes] = useState("");
   const [saveError, setSaveError] = useState("");
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (!saved) return;
+    const t = setTimeout(() => {
+      router.push("/workout");
+      router.refresh();
+    }, 1500);
+    return () => clearTimeout(t);
+  }, [saved, router]);
 
   const currentEx = exercises[currentExIdx];
   const currentSet = setLogs[currentExIdx][currentSetIdx];
@@ -101,6 +111,16 @@ export function LogClient({ planId, day, exercises }: Props) {
     const isLastExercise = currentExIdx === exercises.length - 1;
 
     if (!isLastSet) {
+      setSetLogs((prev) => {
+        const next = prev.map((row) => [...row]);
+        const cur = next[currentExIdx][currentSetIdx];
+        next[currentExIdx][currentSetIdx + 1] = {
+          ...next[currentExIdx][currentSetIdx + 1],
+          loadUsed: cur.loadUsed,
+          repsDone: cur.repsDone,
+        };
+        return next;
+      });
       setCurrentSetIdx((s) => s + 1);
     } else if (!isLastExercise) {
       setCurrentExIdx((e) => e + 1);
@@ -139,8 +159,7 @@ export function LogClient({ planId, day, exercises }: Props) {
       });
 
       if (result.success) {
-        router.push("/workout");
-        router.refresh();
+        setSaved(true);
       } else {
         setSaveError(result.error ?? "Errore imprevisto.");
       }
@@ -232,6 +251,12 @@ export function LogClient({ planId, day, exercises }: Props) {
             Salva Allenamento
           </Button>
         </div>
+
+        {saved && (
+          <div className="fixed bottom-[calc(var(--bottom-bar-height)+16px)] left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-[var(--color-success)]/20 border border-[var(--color-success)] text-sm text-[var(--color-success)] shadow-lg whitespace-nowrap">
+            ✓ Allenamento salvato!
+          </div>
+        )}
       </div>
     );
   }
@@ -398,7 +423,7 @@ export function LogClient({ planId, day, exercises }: Props) {
                 </span>
               )}
             </div>
-            <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+            <div className="grid grid-cols-5 gap-1.5">
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
                 <button
                   key={n}
@@ -407,7 +432,7 @@ export function LogClient({ planId, day, exercises }: Props) {
                     patchCurrentSet({ rpe: n === currentSet.rpe ? 0 : n })
                   }
                   className={[
-                    "shrink-0 w-10 h-10 rounded-full text-sm font-semibold transition-colors",
+                    "h-10 rounded-lg text-sm font-semibold transition-colors w-full",
                     n === currentSet.rpe
                       ? "bg-[var(--color-accent)] text-white"
                       : "bg-[var(--color-surface-raised)] text-[var(--color-text-secondary)]",

@@ -236,6 +236,11 @@ export function PlanBuilder({
   async function handleSaveAsTemplate() {
     if (!plan.id) return;
     startTransition(async () => {
+      const saveResult = await savePlan({ ...plan, days: plan.days }, "active");
+      if (!saveResult.success) {
+        setTemplateError(saveResult.error ?? "Errore nel salvataggio.");
+        return;
+      }
       const result = await saveAsTemplate(plan.id!);
       if (result.success) {
         setTemplateSaved(true);

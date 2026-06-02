@@ -1,96 +1,86 @@
+"use client";
+
 import Link from "next/link";
-import { LogOut } from "lucide-react";
+import { LogOut, Users, FileText, Calendar, Dumbbell, BookOpen } from "lucide-react";
 import { signOut } from "@/lib/actions/auth";
 import { ThemeToggle } from "@/components/ui";
+import { usePathname } from "next/navigation";
 
 const trainerNavItems = [
   {
     href: "/clients",
     label: "Clienti",
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
-        <circle cx="9" cy="7" r="4" />
-        <path d="M23 21v-2a4 4 0 00-3-3.87" />
-        <path d="M16 3.13a4 4 0 010 7.75" />
-      </svg>
-    ),
+    icon: Users,
   },
   {
     href: "/templates",
     label: "Template",
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-        <polyline points="14 2 14 8 20 8"/>
-        <line x1="16" y1="13" x2="8" y2="13"/>
-        <line x1="16" y1="17" x2="8" y2="17"/>
-        <polyline points="10 9 9 9 8 9"/>
-      </svg>
-    ),
+    icon: FileText,
+  },
+  {
+    href: "/corsi",
+    label: "Corsi",
+    icon: BookOpen,
   },
   {
     href: "/schedule",
-    label: "Corsi",
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="4" width="18" height="18" rx="2" />
-        <line x1="16" y1="2" x2="16" y2="6" />
-        <line x1="8" y1="2" x2="8" y2="6" />
-        <line x1="3" y1="10" x2="21" y2="10" />
-      </svg>
-    ),
+    label: "Calendario",
+    icon: Calendar,
   },
   {
     href: "/exercises",
     label: "Esercizi",
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M6.5 6.5h11" />
-        <path d="M6.5 17.5h11" />
-        <path d="M3 10.5h2.5v3H3z" />
-        <path d="M18.5 10.5H21v3h-2.5z" />
-        <path d="M1 10.5h2" />
-        <path d="M21 10.5h2" />
-      </svg>
-    ),
+    icon: Dumbbell,
   },
 ];
 
 export default function TrainerLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+
+  const isActive = (href: string) =>
+    pathname === href || pathname.startsWith(href + "/");
+
   return (
     <div className="min-h-screen flex bg-[var(--color-bg)]">
       {/* Sidebar — desktop */}
-      <aside className="hidden md:flex flex-col w-60 bg-[var(--color-surface)] border-r border-[var(--color-border)] shrink-0">
+      <aside className="hidden md:flex flex-col w-64 bg-[var(--color-surface)] border-r border-[var(--color-border)] shrink-0">
         <div
           className="flex items-center px-6 font-display font-bold text-lg text-[var(--color-text)] border-b border-[var(--color-border)]"
           style={{ height: "var(--nav-height)" }}
         >
           GymKit <span className="ml-2 text-xs text-[var(--color-accent)] font-normal">trainer</span>
         </div>
-        <nav className="flex-1 py-4 px-3 flex flex-col gap-1">
-          {trainerNavItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-md text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-raised)] transition-colors text-sm font-medium"
-            >
-              {item.icon}
-              {item.label}
-            </Link>
-          ))}
+        <nav className="flex-1 py-6 px-4 flex flex-col gap-1.5">
+          {trainerNavItems.map((item) => {
+            const active = isActive(item.href);
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-sm font-medium ${
+                  active
+                    ? "bg-[var(--color-accent)] text-white shadow-md shadow-[var(--color-accent)]/20"
+                    : "text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-raised)]"
+                }`}
+              >
+                <Icon size={18} strokeWidth={active ? 2.5 : 2} />
+                {item.label}
+              </Link>
+            );
+          })}
         </nav>
-        <div className="px-3 pb-4 flex flex-col gap-1">
-          <div className="flex items-center justify-between px-3 py-1">
-            <span className="text-xs text-[var(--color-text-secondary)]">Tema</span>
+        <div className="px-4 pb-6 flex flex-col gap-1.5">
+          <div className="flex items-center justify-between px-4 py-2 bg-[var(--color-surface-raised)] rounded-xl border border-[var(--color-border)]">
+            <span className="text-xs font-medium text-[var(--color-text-secondary)]">Tema</span>
             <ThemeToggle />
           </div>
           <form action={signOut}>
             <button
               type="submit"
-              className="flex items-center gap-3 w-full px-3 py-2.5 rounded-md text-[var(--color-text-secondary)] hover:text-[var(--color-error)] hover:bg-[var(--color-error)]/10 transition-colors text-sm"
+              className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-[var(--color-text-secondary)] hover:text-[var(--color-error)] hover:bg-[var(--color-error)]/10 transition-all duration-200 text-sm font-medium"
             >
-              <LogOut size={16} />
+              <LogOut size={18} />
               Esci
             </button>
           </form>
@@ -112,9 +102,9 @@ export default function TrainerLayout({ children }: { children: React.ReactNode 
             <form action={signOut}>
               <button
                 type="submit"
-                className="flex items-center justify-center w-9 h-9 rounded-md text-[var(--color-text-secondary)] hover:text-[var(--color-error)] hover:bg-[var(--color-error)]/10 transition-colors"
+                className="flex items-center justify-center w-10 h-10 rounded-xl text-[var(--color-text-secondary)] hover:text-[var(--color-error)] hover:bg-[var(--color-error)]/10 transition-all"
               >
-                <LogOut size={18} />
+                <LogOut size={20} />
               </button>
             </form>
           </div>
@@ -127,19 +117,31 @@ export default function TrainerLayout({ children }: { children: React.ReactNode 
 
       {/* Bottom nav — mobile */}
       <nav
-        className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around bg-[var(--color-surface)] border-t border-[var(--color-border)]"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around bg-[var(--color-surface)] border-t border-[var(--color-border)] px-2"
         style={{ height: "var(--bottom-bar-height)" }}
       >
-        {trainerNavItems.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className="flex flex-col items-center gap-1 min-w-[48px] min-h-[48px] justify-center text-[var(--color-text-secondary)] hover:text-[var(--color-accent)] transition-colors"
-          >
-            {item.icon}
-            <span className="text-[10px] font-medium">{item.label}</span>
-          </Link>
-        ))}
+        {trainerNavItems.map((item) => {
+          const active = isActive(item.href);
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex flex-col items-center gap-1 min-w-[64px] min-h-[48px] justify-center flex-1 transition-all duration-200 ${
+                active
+                  ? "text-[var(--color-accent)]"
+                  : "text-[var(--color-text-secondary)]"
+              }`}
+            >
+              <div className={`p-1 rounded-lg transition-colors ${active ? "bg-[var(--color-accent)]/10" : ""}`}>
+                <Icon size={22} strokeWidth={active ? 2.5 : 2} />
+              </div>
+              <span className={`text-[10px] font-semibold tracking-tight ${active ? "text-[var(--color-accent)]" : ""}`}>
+                {item.label}
+              </span>
+            </Link>
+          );
+        })}
       </nav>
     </div>
   );

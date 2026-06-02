@@ -18,13 +18,21 @@ type SlotForWeek = {
 
 const IT_DAYS = ["Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"];
 
+function toLocalDateStr(d: Date): string {
+  return [
+    d.getFullYear(),
+    String(d.getMonth() + 1).padStart(2, "0"),
+    String(d.getDate()).padStart(2, "0"),
+  ].join("-");
+}
+
 function getWeekStart(dateStr?: string): string {
   const d = dateStr ? new Date(dateStr + "T00:00:00") : new Date();
   const day = d.getDay();
   const diff = day === 0 ? -6 : 1 - day;
   d.setDate(d.getDate() + diff);
   d.setHours(0, 0, 0, 0);
-  return d.toISOString().split("T")[0];
+  return toLocalDateStr(d);
 }
 
 function formatTime(iso: string) {
@@ -47,12 +55,12 @@ function formatWeekRange(weekStart: string) {
 function prevWeek(weekStart: string) {
   const d = new Date(weekStart + "T00:00:00");
   d.setDate(d.getDate() - 7);
-  return d.toISOString().split("T")[0];
+  return toLocalDateStr(d);
 }
 function nextWeek(weekStart: string) {
   const d = new Date(weekStart + "T00:00:00");
   d.setDate(d.getDate() + 7);
-  return d.toISOString().split("T")[0];
+  return toLocalDateStr(d);
 }
 
 interface Props {
@@ -115,7 +123,7 @@ export default async function BookingPage({ searchParams }: Props) {
   });
 
   const slotsByDay = weekDates.map((date) => {
-    const dateStr = date.toISOString().split("T")[0];
+    const dateStr = toLocalDateStr(date);
     return slots.filter((s) => s.starts_at.startsWith(dateStr));
   });
 
@@ -153,7 +161,7 @@ export default async function BookingPage({ searchParams }: Props) {
             const isToday = date.toDateString() === new Date().toDateString();
 
             return (
-              <div key={date.toISOString()} className="w-40 flex flex-col gap-2">
+              <div key={date.toISOString()} className="w-32 flex flex-col gap-2">
                 {/* Day header */}
                 <div className="flex flex-col items-center gap-0.5 pb-1">
                   <span className="text-xs font-medium text-[var(--color-text-secondary)]">
