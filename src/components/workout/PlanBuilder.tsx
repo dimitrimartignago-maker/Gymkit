@@ -492,9 +492,9 @@ export function PlanBuilder({
                 onChange={(v) =>
                   updateExercise(activeDayIdx, ex.tempId, { restSeconds: v })
                 }
-                min={0}
+                min={5}
                 max={600}
-                step={15}
+                step={1}
                 unit="s"
               />
               <div className="flex flex-col gap-1.5">
